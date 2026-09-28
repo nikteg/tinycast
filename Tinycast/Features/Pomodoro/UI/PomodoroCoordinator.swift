@@ -46,7 +46,7 @@ final class PomodoroCoordinator {
 
     func startCycle() {
         store.update(.start(now: Date(), durations: durations))
-        playWindUp(minutes: durations.workMinutes, after: nil)
+        playWindUp(after: nil)
         core.showMessage(
             "Pomodoro started · \(PomodoroAnnouncement.minutes(durations.workMinutes)) of work")
         began()
@@ -62,7 +62,7 @@ final class PomodoroCoordinator {
         guard var timer = store.timer, timer.isRunning else { return }
         timer.pause(now: Date())
         store.update(timer)
-        play(.toggleOff)
+        play(.click)
         core.showMessage("Pomodoro paused")
         halted()
     }
@@ -71,7 +71,7 @@ final class PomodoroCoordinator {
         guard var timer = store.timer, !timer.isRunning else { return }
         timer.resume(now: Date())
         store.update(timer)
-        play(.toggleOn)
+        play(.click)
         let left = PomodoroAnnouncement.minutes(timer.minutesLeft(now: Date()))
         core.showMessage("Pomodoro resumed · \(left) left")
         began()
@@ -81,7 +81,7 @@ final class PomodoroCoordinator {
         guard var timer = store.timer else { return }
         timer.skip(now: Date(), durations: durations)
         store.update(timer)
-        if timer.isRunning { playWindUp(minutes: minutes(of: timer.phase), after: nil) }
+        if timer.isRunning { playWindUp(after: nil) }
         core.showMessage(timer.phase == .rest ? "Skipped to the break" : "Skipped to work")
         if timer.isRunning { began() } else { halted() }
     }
@@ -89,7 +89,7 @@ final class PomodoroCoordinator {
     func stop() {
         guard store.timer != nil else { return }
         store.update(nil)
-        play(.toggleOff)
+        play(.click)
         core.showMessage("Pomodoro stopped")
         halted()
         applyPresence()
@@ -101,10 +101,6 @@ final class PomodoroCoordinator {
     }
 
     private var durations: PomodoroDurations { settings.pomodoroDurations }
-
-    private func minutes(of phase: PomodoroPhase) -> Int {
-        phase == .work ? durations.workMinutes : durations.restMinutes
-    }
 
     private func began() {
         applyPresence()
@@ -157,10 +153,10 @@ final class PomodoroCoordinator {
     private func tick() -> Date? {
         let date = Date()
         guard var timer = store.timer, timer.isRunning else { return nil }
-        if let phase = timer.advance(now: date, durations: durations) {
+        if timer.advance(now: date, durations: durations) != nil {
             store.update(timer)
             play(.ding)
-            playWindUp(minutes: minutes(of: phase), after: Self.windUpDelay)
+            playWindUp(after: Self.windUpDelay)
             announceNext()
         }
         now = date
@@ -175,13 +171,13 @@ final class PomodoroCoordinator {
         sounds.play(cue)
     }
 
-    private func playWindUp(minutes: Int, after delay: Duration?) {
+    private func playWindUp(after delay: Duration?) {
         windUp?.cancel()
         guard settings.pomodoroSoundsEnabled else { return }
         windUp = Task { [weak self] in
             if let delay { try? await Task.sleep(for: delay) }
             guard !Task.isCancelled, let self, settings.pomodoroSoundsEnabled else { return }
-            sounds.windUp(minutes: minutes)
+            sounds.play(.windUp)
         }
     }
 }

@@ -23,7 +23,7 @@ each change saying how long the next phase runs and until when.
 | `Model/PomodoroTimer.swift` | Phase, running/paused clock, pause/resume/skip/advance |
 | `Model/PomodoroAnnouncement.swift` | What a phase change says |
 | `Service/PomodoroStore.swift` | The cycle in progress, persisted to `pomodoro.json` |
-| `Service/PomodoroSoundRunner.swift` | Mater's cues, and the wind-up generated from the tick sample |
+| `Service/PomodoroSoundRunner.swift` | Mater's wind-up, click and ding |
 | `Service/PomodoroNotificationRunner.swift` | The one pending phase-change notification |
 | `UI/PomodoroCoordinator.swift` | Commands, the minute pump, sounds, notifications, presence |
 | `UI/PomodoroMenuBarItem.swift` | The menu-bar label and menu |
@@ -31,11 +31,9 @@ each change saying how long the next phase runs and until when.
 
 ## Sounds
 
-As in Mater: a ding as a phase ends, `toggle-on` on resume, `toggle-off` on pause and stop, and a
-wind-up as a phase starts — two seconds after the ding when one rolls over on its own. The wind-up is
-not a file: it is mixed from the tick sample, one click per minute being wound, spaced along
-`1 - sqrt(1 - t)` over `max(minutes × 0.04 s, 0.25 s)` with a seeded random loudness, which is
-Mater's ruler winding at 500 pt/s over 20 pt a minute.
+Mater v2.0.3's samples, not the ones its Swift rewrite replaced them with: the
+wind-up as a phase starts — two seconds after the ding when one rolls over on its own — a click on
+pause, resume and stop, and the ding as a phase ends.
 
 ## Commands and the menu bar
 

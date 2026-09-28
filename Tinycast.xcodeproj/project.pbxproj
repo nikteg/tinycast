@@ -311,7 +311,6 @@
 		63731BC19179EB89D495A390 /* NoteRevealPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7D0725CF7068879F86F0AA /* NoteRevealPolicy.swift */; };
 		648D442C0C716DB622511436 /* AIChatWindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A4A767EB3BD7219675B1A0 /* AIChatWindowChrome.swift */; };
 		64AD2324BDA6293464C98913 /* EmojiCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EB979ECD44738BCD9E2F90 /* EmojiCoordinator.swift */; };
-		64E01F56C1E1FC7C689A6E30 /* pomodoro-toggle-on.wav in Resources */ = {isa = PBXBuildFile; fileRef = EEFEB47FA1610F2DE35EA7B2 /* pomodoro-toggle-on.wav */; };
 		6527B404C220924885C070B3 /* AppWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979DED5579535D1F0A32DBF /* AppWindowController.swift */; };
 		6564BC090026A6EBC5C24000 /* AIChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433D5E44E58C6759981FE7E1 /* AIChatDetailView.swift */; };
 		664D82881F3B90E6B1D504EB /* WindowPlacementEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E89EC889B55E3E5DD543542 /* WindowPlacementEngine.swift */; };
@@ -459,7 +458,6 @@
 		9B8C1C35BA7DFC41F1A070CD /* ExtensionSelectionForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF4FF95DC8A5CD7676DCBA60 /* ExtensionSelectionForwarder.swift */; };
 		9BB417EBD7843DDE09AA0200 /* ChatCopyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030E67F6AC9A292F385FB5A5 /* ChatCopyButton.swift */; };
 		9BE84B47BCF0DA5552AB3591 /* CameraCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5873BB8728FD8BC5D256A21 /* CameraCoordinator.swift */; };
-		9C375AFFFF2CDF9B1376E6CA /* pomodoro-toggle-off.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4C47CD63C74E2B04B687BD0A /* pomodoro-toggle-off.wav */; };
 		9DB09F96E6F8C226BD9AB1C9 /* SymbolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387BE675F580496656E72559 /* SymbolCatalog.swift */; };
 		9DB4319C835DCF8C0723356D /* MenuBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2902B904C7BD2FC23856EDB9 /* MenuBarItem.swift */; };
 		9DB73F12214137B60AE00828 /* RaycastScriptImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CF6A57ECFDA17248393EA8 /* RaycastScriptImport.swift */; };
@@ -582,7 +580,6 @@
 		C4B9E9B3E965BFDFD31EDC3D /* LauncherCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858E08BB313EC330C2D5E50C /* LauncherCoordinator.swift */; };
 		C5246D93BBA447893D58BD91 /* FallbackStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75614189EED9B440D911B412 /* FallbackStore.swift */; };
 		C567D5C8F8873CA595B1536A /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74904E7C8CE9B121B32594B9 /* TextInjector.swift */; };
-		C5D168EFE2FA98551619049F /* pomodoro-tick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2A5DDB7C25FADFE460E693A4 /* pomodoro-tick.wav */; };
 		C5F60D8681235B95DAA3314F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 418DA899A1546F3B4AC44777 /* GeneralSettingsView.swift */; };
 		C64E1E78A80C4742745CB235 /* ReleaseArchitecture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E3B7CDDB6A9D790548648B /* ReleaseArchitecture.swift */; };
 		C7111FA661D5C3CA0A5E7EF6 /* WindowLayoutDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FB153A0D53D42771F1CA99 /* WindowLayoutDisplay.swift */; };
@@ -705,6 +702,7 @@
 		F03DB7A7898F0388E821FDBB /* AppleIntelligenceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B5C0B83C3645AC90639B85 /* AppleIntelligenceProvider.swift */; };
 		F13789E3732E844EE7584561 /* ColorValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9287418DC6C04437FB4BAF /* ColorValue.swift */; };
 		F289967F8DE039B6E1C3BE12 /* InterfaceSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C9F1A20CBB32EBB9629A4F /* InterfaceSize.swift */; };
+		F2951E057FC595C1462611FA /* pomodoro-click.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0EB61030FCD139986DC06798 /* pomodoro-click.wav */; };
 		F37AC0478A0A96243E833900 /* MCPCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFFF4B2F2BF476AD9B111B9 /* MCPCoordinator.swift */; };
 		F3E0C5D483CC854D63448A4B /* UpdateReadiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76460C2D60828CC79F0CE972 /* UpdateReadiness.swift */; };
 		F44DA0C81285A90138E13A7B /* ChatGPTSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43E5D47E198B86901D75515 /* ChatGPTSubscription.swift */; };
@@ -754,6 +752,7 @@
 		FF372D9F3A0FE3671D517589 /* WindowCommandCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE33C0D70D728B12E9A8D4A6 /* WindowCommandCoordinator.swift */; };
 		FF42AF572BA0BFEFCFCE5901 /* WindowLayoutGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFF7FC0E52E9082006614E0D /* WindowLayoutGeometry.swift */; };
 		FF934DD9FBD8F26BAB72ACD1 /* SymbolImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EC07E163CE4F3D11FE7225 /* SymbolImage.swift */; };
+		FFB1D325A5A8795639B8B2EA /* pomodoro-windup.wav in Resources */ = {isa = PBXBuildFile; fileRef = DE1B2298EA4AB219E0E33F03 /* pomodoro-windup.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -823,6 +822,7 @@
 		0DFEBE220187043060F7F286 /* ToolRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRunner.swift; sourceTree = "<group>"; };
 		0E099C50FF0B6A0069CAC5BF /* CommandOutputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandOutputView.swift; sourceTree = "<group>"; };
 		0E73A01A5FEA2B4CA68AE6A6 /* CustomWindowSizeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindowSizeCoordinator.swift; sourceTree = "<group>"; };
+		0EB61030FCD139986DC06798 /* pomodoro-click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "pomodoro-click.wav"; sourceTree = "<group>"; };
 		0EDB1EEB97CC5F6B0B81FFD6 /* LauncherRankingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherRankingStore.swift; sourceTree = "<group>"; };
 		0F1A3A9CEDBEBC132FC4A552 /* WindowSwitchSweep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitchSweep.swift; sourceTree = "<group>"; };
 		0F5730EA67D6E91ABAD8F446 /* AIEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIEmptyState.swift; sourceTree = "<group>"; };
@@ -903,7 +903,6 @@
 		29A8B82DCB1B7D131BF0908A /* PaletteDropGuideController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteDropGuideController.swift; sourceTree = "<group>"; };
 		29D547CAB18AFCFC0390C943 /* NavigationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationSettingsView.swift; sourceTree = "<group>"; };
 		2A1B528506E4B62440B4863A /* MenuTreeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTreeNode.swift; sourceTree = "<group>"; };
-		2A5DDB7C25FADFE460E693A4 /* pomodoro-tick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "pomodoro-tick.wav"; sourceTree = "<group>"; };
 		2A6CA1C9AE38B1A036988BC0 /* WindowLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLevel.swift; sourceTree = "<group>"; };
 		2A82786725DFEB5467778E68 /* AIRetention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRetention.swift; sourceTree = "<group>"; };
 		2AB596CB339D5C3AEBE550A3 /* ExtensionFormField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionFormField.swift; sourceTree = "<group>"; };
@@ -1010,7 +1009,6 @@
 		4AEBAA9641BC6C279DB0123C /* CameraPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewController.swift; sourceTree = "<group>"; };
 		4BC0CEDE9677C9C2485586B3 /* FilePreviewThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePreviewThumbnail.swift; sourceTree = "<group>"; };
 		4BEA1E122A8139A21E646FE2 /* RedactedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedText.swift; sourceTree = "<group>"; };
-		4C47CD63C74E2B04B687BD0A /* pomodoro-toggle-off.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "pomodoro-toggle-off.wav"; sourceTree = "<group>"; };
 		4C6A905C247E0A5C349125EA /* PseudoTerminal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PseudoTerminal.swift; sourceTree = "<group>"; };
 		4CB0BD36800F3B1AC765F514 /* RegionCurrency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionCurrency.swift; sourceTree = "<group>"; };
 		4D8553E1626E985013046C47 /* EventDraftFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDraftFields.swift; sourceTree = "<group>"; };
@@ -1448,6 +1446,7 @@
 		DD8CDDBAC59480E1A7559278 /* ExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionManager.swift; sourceTree = "<group>"; };
 		DDE8B48420B83D612E01603A /* MarkdownBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownBlock.swift; sourceTree = "<group>"; };
 		DE1A2CE5E4D5F10346B5F6F3 /* EmojiGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiGridView.swift; sourceTree = "<group>"; };
+		DE1B2298EA4AB219E0E33F03 /* pomodoro-windup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "pomodoro-windup.wav"; sourceTree = "<group>"; };
 		DE7DEB147E5D718E00D67755 /* ExtensionOAuthSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionOAuthSession.swift; sourceTree = "<group>"; };
 		DF0880635E294D9DF55BAADA /* CustomCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommand.swift; sourceTree = "<group>"; };
 		DFE5D670CFC618B2EAFA0868 /* LauncherSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherSuggestions.swift; sourceTree = "<group>"; };
@@ -1496,7 +1495,6 @@
 		EE1C64977153EF104F583008 /* CalcTokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcTokenizer.swift; sourceTree = "<group>"; };
 		EE21578FB7500CB744855654 /* FileSearchFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchFilter.swift; sourceTree = "<group>"; };
 		EEAFF79E9897975CAC5EAC0E /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
-		EEFEB47FA1610F2DE35EA7B2 /* pomodoro-toggle-on.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "pomodoro-toggle-on.wav"; sourceTree = "<group>"; };
 		EF202236034AB044CA846B60 /* WindowLayoutsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutsSection.swift; sourceTree = "<group>"; };
 		EF4FF95DC8A5CD7676DCBA60 /* ExtensionSelectionForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSelectionForwarder.swift; sourceTree = "<group>"; };
 		EFAD3CBED74EA031B58266EC /* SettingsFileKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFileKey.swift; sourceTree = "<group>"; };
@@ -1854,10 +1852,9 @@
 			isa = PBXGroup;
 			children = (
 				DDE1349A1C3D8118741BFAB6 /* .claude */,
+				0EB61030FCD139986DC06798 /* pomodoro-click.wav */,
 				6BA88020038D35DA9DE098EC /* pomodoro-ding.wav */,
-				2A5DDB7C25FADFE460E693A4 /* pomodoro-tick.wav */,
-				4C47CD63C74E2B04B687BD0A /* pomodoro-toggle-off.wav */,
-				EEFEB47FA1610F2DE35EA7B2 /* pomodoro-toggle-on.wav */,
+				DE1B2298EA4AB219E0E33F03 /* pomodoro-windup.wav */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -3569,10 +3566,9 @@
 				9969E6858C4FDC5CCCDEB5D8 /* Assets.xcassets in Resources */,
 				6B3A9A37600C941DF38F9171 /* NOTICE.md in Resources */,
 				694B7E1A8C7C2D6DF26D3BF9 /* RaycastRuntime.generated.js in Resources */,
+				F2951E057FC595C1462611FA /* pomodoro-click.wav in Resources */,
 				4DF383B54A8D388DFC317451 /* pomodoro-ding.wav in Resources */,
-				C5D168EFE2FA98551619049F /* pomodoro-tick.wav in Resources */,
-				9C375AFFFF2CDF9B1376E6CA /* pomodoro-toggle-off.wav in Resources */,
-				64E01F56C1E1FC7C689A6E30 /* pomodoro-toggle-on.wav in Resources */,
+				FFB1D325A5A8795639B8B2EA /* pomodoro-windup.wav in Resources */,
 				36784C964DB27B94A62EEAA3 /* tinycast.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
