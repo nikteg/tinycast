@@ -117,6 +117,33 @@ struct PaletteNavigationTests {
             chatted.pop() && chatted.mode == .launcher,
             "and a second step back reaches the launcher the ring started on")
 
+        let closed = searchingLauncher()
+        closed.popToLauncher()
+        expect(
+            closed.mode == .launcher && closed.query == "clipboard" && closed.selection == 0,
+            "a pop to root keeps the launcher's text and lands its list afresh")
+
+        let deep = searchingLauncher()
+        deep.push(mode: .clipboard)
+        deep.query = "invoice"
+        deep.popToLauncher()
+        expect(
+            deep.mode == .launcher && !deep.canGoBack && deep.query == "clipboard",
+            "from a pushed screen it is the launcher's text that comes back, not the screen's")
+
+        let summonedAway = searchingLauncher()
+        summonedAway.prepare(mode: .emoji)
+        summonedAway.query = "smile"
+        summonedAway.popToLauncher()
+        expect(
+            summonedAway.query == "clipboard",
+            "a screen summoned over the launcher does not wipe the text it replaced")
+
+        let cleared = searchingLauncher()
+        cleared.query = ""
+        cleared.popToLauncher()
+        expect(cleared.query.isEmpty, "a launcher cleared before the close reopens cleared")
+
         let pasted = searchingLauncher()
         pasted.query = "\nfirst pasted row,\r\nsecond pasted row\u{2028}third\n"
         expect(

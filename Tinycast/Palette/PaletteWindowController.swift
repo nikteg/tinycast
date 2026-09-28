@@ -10,7 +10,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     /// Our key window at summon time, so hiding hands focus back to Settings, not a stale app.
     private(set) weak var previousOwnWindow: NSWindow?
     private var popToRootTimer: Timer?
-    // Reopen beat the timeout, so select the preserved query.
+    /// A query outlived the close, so the next show selects it for typing over.
     private var queryWasPreserved = false
     /// Set by a pop to root while hidden and spent by the next show: that screen is already fresh.
     private(set) var isPoppedToRoot = false
@@ -195,8 +195,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     /// The screen only: a conversation is not a typed query, and `Opens To` decides its lifetime.
     private func popToRoot() {
-        core.palette.prepare(mode: .launcher)
+        core.palette.popToLauncher()
         isPoppedToRoot = true
+        queryWasPreserved = !core.palette.query.isEmpty
     }
 
     /// Skip the Pop to Root Search delay, for a close that means to reset as well as hide.
