@@ -1,12 +1,11 @@
-# Tinycast
+# Tinycast Fork
 
-**A tiny, fully native macOS launcher. One hotkey, everything you reach for all day, under 100 MB of
-RAM.**
+**A personal fork of [Tinycast](https://github.com/abue-ammar/tinycast), the tiny, fully native macOS
+launcher.** It follows upstream but lives on its own. The changes here were made for my own use and
+will most likely never be merged back, so this repository is not a place to report upstream bugs or
+ask for upstream features.
 
 <p align="center">
-  <a href="https://github.com/abue-ammar/tinycast/releases/latest">
-    <img alt="Latest release"
-         src="https://img.shields.io/github/v/release/abue-ammar/tinycast?sort=semver&style=flat&label=release&color=1F6FEB"></a>
   <img alt="Swift 6.0"
        src="https://img.shields.io/badge/Swift-6.0-F05138?style=flat&logo=swift&logoColor=white">
   <img alt="macOS 26 or later"
@@ -14,145 +13,83 @@ RAM.**
   <a href="LICENSE">
     <img alt="License: AGPL-3.0"
          src="https://img.shields.io/badge/License-AGPL--3.0-3DA639?style=flat"></a>
-  <a href="https://discord.gg/v2Eeb4QQy3">
-    <img alt="Join the Tinycast Discord"
-         src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white"></a>
-  <a href="https://tinycast.dev/support">
-    <img alt="Support Tinycast"
-         src="https://img.shields.io/badge/Support-Tip%20the%20dev-EA4AAA?style=flat&logo=polar&logoColor=white"></a>
 </p>
-
-SwiftUI and AppKit, **zero third-party dependencies**, no Electron and no telemetry. It also **runs
-real Raycast extensions**, rendered as native SwiftUI. Free, open source, and staying that way.
-
-For anything private, email [iabueammar@gmail.com](mailto:iabueammar@gmail.com).
 
 <p align="center">
   <img src="docs/screenshot.png" alt="Tinycast command palette" width="720">
 </p>
 
-## Support
+## What this fork adds
 
-Tinycast is **free, and it stays that way**. If it earns a place in your daily flow, a one-off tip helps
-keep it actively maintained. GitHub Sponsors isn't available in my country, so please support here:
+- **Pomodoro.** A work/break timer after [Mater](https://github.com/jasonlong/mater): 25 minutes of
+  work and 5 of break by default, Mater's sounds, a countdown in the menu bar, and a notification at
+  each change saying how long the next phase runs and until when.
+- **Better date math.** The calculator reads dates the way Soulver and Raycast do: `today - 14 sep`
+  is 2 weeks rather than 351 days, plus ranges (`to`, `through`, `between`), `after`/`before`, named
+  holidays, workday counts, and date facts such as week number or day of year.
+- **The launcher keeps its query.** Closing the palette no longer clears what you typed. It comes
+  back selected, so typing replaces it and Escape clears it.
+- **Its own app.** It installs as `Tinycast Fork.app` with its own bundle id, preferences and
+  permissions, so it can sit beside upstream's Tinycast.
+- **Updates from this repository.** There are no release downloads. The app checks this fork's
+  `main` and, when there are new commits, tells you the command to rebuild.
+- **No support asks.** Upstream's tip jar, reminders and social links are gone. The About page links
+  here and shows the commit each build came from.
 
-<p align="center">
-  <a href="https://tinycast.dev/support">
-    <img alt="Support Tinycast" width="188" height="44" src="docs/support-button.svg"></a><br>
-  <sub>Payments are handled securely by <a href="https://polar.sh">Polar.sh</a>.</sub>
-</p>
-
-## Features
-
-- **App launcher** — fuzzy-search and launch anything, pin favorites, see what's running, quit an app
-  or every app at once.
-- **Global hotkey** — one shortcut summons the palette from anywhere.
-- **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).
-- **Search Files** — open files and folders from the folders you choose, through Spotlight, with no
-  index of our own.
-- **Dictionary** — look a word up with the Define Word command, or define whatever you typed from the
-  launcher's fallbacks, read from the Mac's own dictionaries.
-- **Clipboard history** — text and images, searchable, pasted back into the app you were using.
-- **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
-- **Quicklinks** — turn a URL, search, file or deeplink into a command, with placeholders for typed
-  input, the clipboard or the date.
-- **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
-  global hotkeys.
-- **Snippets** — reusable Markdown templates with dynamic placeholders, arguments, nested references
-  and optional keyword expansion.
-- **Custom commands** — run named shell commands through fuzzy search or their own global hotkeys.
-- **Window management** — 34 Rectangle-style actions: halves, quarters, thirds, sizing, nudging,
-  display moves, fullscreen and Spaces.
-- **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
-  files, and more.
-- **Calendar and meetings** — your next meeting on the empty palette and in the menu bar, one key to
-  join it, or let it join itself.
-- **Notes** — an unlimited collection of plain Markdown files in one floating editor, searchable from
-  the palette and rendered as you write.
-- **Emoji picker** — a searchable emoji grid, one keystroke away.
-- **AI chat** — use your own key or an installed AI account: ask Quick AI from the palette, or keep
-  longer conversations in the AI Chat window, with a searchable, pinnable history. Off out of the box,
-  like every AI feature.
-- **Quick Actions** — fix grammar, rewrite, translate or summarize the selected text in any app.
-- **Raycast extensions** — run the ones you already have natively, rendered as SwiftUI.
-- **Backup and import** — export your settings to a file, or import your setup from Raycast.
+Everything else is upstream Tinycast: app launcher, global and per-app hotkeys, file search,
+clipboard history, calculator, quicklinks, Apple Shortcuts, snippets, custom commands, window
+management, system actions, calendar and meetings, notes, emoji picker, opt-in AI chat and Quick
+Actions, Raycast extensions, and backup/import. SwiftUI and AppKit, zero third-party dependencies, no
+telemetry.
 
 ## Install
 
-First, add the tap:
+There are no prebuilt downloads: you build it yourself, which takes a few minutes. You need macOS 26
+or later, [Xcode 26](https://apps.apple.com/app/xcode/id497799835) opened once, and
+[mise](https://mise.jdx.dev).
 
 ```sh
-brew trust --tap abue-ammar/tinycast   # required for third-party taps
-brew tap abue-ammar/tinycast
+git clone https://github.com/nikteg/tinycast.git && cd tinycast
+mise trust && mise run bootstrap
 ```
 
-Then run the one line that matches your Mac:
+`bootstrap` checks your toolchain, installs the build tools through mise, creates a local
+self-signed signing identity in your login keychain, then builds and installs
+`/Applications/Tinycast Fork.app` and launches it. Signing every build with the same identity is
+what keeps macOS from asking for Accessibility again after each rebuild.
 
-| Your Mac                         | Install                                  |
-| -------------------------------- | ---------------------------------------- |
-| Apple silicon, macOS 26 or newer | `brew install --cask tinycast`           |
-| Intel, macOS 26                  | `brew install --cask tinycast-universal` |
-
-Not sure which you have? **Apple menu → About This Mac.** Homebrew checks too, and refuses the
-wrong one.
-
-Want early builds? `brew install --cask tinycast@beta` puts `Tinycast Beta.app` beside the stable
-app, with its own settings and permissions. Apple silicon, macOS 26+.
-
-Homebrew clears the macOS quarantine flag on every install and update, so there is nothing else to
-run. Downloading a DMG from [Releases](https://github.com/abue-ammar/tinycast/releases) instead?
-Tinycast is self-signed, so clear the flag once:
-`xattr -dr com.apple.quarantine "/Applications/Tinycast.app"`.
+To update, run `git pull && mise run install` in the clone, or follow the prompt the app shows when
+this fork has new commits.
 
 ## Permissions
 
-**Accessibility** — needed when Tinycast pastes or expands text into another app, and the only
-permission snippet keyword expansion needs. You're prompted when you first use a feature that needs
-it; grant access in **System Settings → Privacy & Security → Accessibility**. Snippets ship
-disabled, and keystrokes are matched locally, never stored and never sent anywhere.
+**Accessibility** is needed when Tinycast pastes or expands text into another app, and it is the only
+permission snippet expansion needs. You're prompted the first time a feature needs it; grant it in
+**System Settings → Privacy & Security → Accessibility**. The Pomodoro asks for **notifications**
+when you start your first cycle.
 
 ## Using it
 
-1. Open **Settings → General** and record a global shortcut to summon Tinycast.
-2. Press it anywhere → the palette floats in. Type to filter, **↵** to launch.
-3. **Tab** switches between Apps and Clipboard; **↑/↓** move, **Esc** dismisses.
-4. **Settings → Shortcuts** — search an app or custom command and record a global shortcut.
-5. **Settings → Snippets** — enable the feature, then create templates with expansion keywords.
+1. Open **Settings → General** and record a global shortcut to summon the palette.
+2. Press it anywhere. Type to filter, **↵** to launch, **↑/↓** to move, **Esc** to dismiss.
+3. **Settings → Shortcuts**: give any app or command its own global shortcut.
+4. Type **Start Pomodoro** in the palette, or set up the timer under **Settings → Pomodoro**.
 
-## Building from source
+## Working on it
 
-See **[docs/development.md](docs/development.md)** for the toolchain, build, packaging, release and
-website workflows. **[docs/](docs/README.md)** indexes everything else — architecture, engineering
-standards, the design system and one document per feature.
+[FORK.md](FORK.md) covers the fork workflow: every mise task, how signing works, syncing with
+upstream, and how the updater decides a new build exists. `mise run check` runs the tests, lint and
+a build. [docs/](docs/README.md) is upstream's documentation of the architecture, standards and each
+feature, kept current for the fork's changes.
 
-## Contributing
+## Upstream
 
-> [!IMPORTANT]
-> **Open an issue before you write code — this is mandatory.** Get the bug or the feature agreed on
-> first; discussing it in the issue (or on [Discord](https://discord.gg/v2Eeb4QQy3)) is strongly
-> encouraged. A PR that doesn't close an issue marked `approved` is closed automatically however good
-> the patch is, and the work is wasted. Docs-only fixes are the one exception.
->
-> Tinycast's feature set is deliberately closed, and "another launcher has it" is not a reason on its
-> own. Ask whether a feature is wanted before you ask for it.
-
-Read **[CONTRIBUTING.md](CONTRIBUTING.md)** first — it covers the memory budget every PR is held to,
-the before/after video requirement for visual changes, and why features get declined. Every PR fills
-in the **[pull request template](.github/PULL_REQUEST_TEMPLATE.md)**. Security issues go through
-[SECURITY.md](SECURITY.md), not the issue tracker.
-
-Questions, ideas, or just want to follow along? **[Join the Discord](https://discord.gg/v2Eeb4QQy3)**.
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=abue-ammar%2Ftinycast&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=abue-ammar/tinycast&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=abue-ammar/tinycast&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=abue-ammar/tinycast&type=date&legend=top-left" />
- </picture>
-</a>
+All credit for Tinycast goes to [Abue Ammar](https://github.com/abue-ammar) and its contributors. If
+you want Tinycast itself, with signed releases, Homebrew installs and support, use
+[upstream](https://github.com/abue-ammar/tinycast). Report problems with the fork's own changes
+[here](https://github.com/nikteg/tinycast/issues).
 
 ## License
 
-[AGPL-3.0](LICENSE)
+[AGPL-3.0](LICENSE), like upstream. Third-party material, including the Pomodoro sounds, is
+listed in [NOTICE.md](NOTICE.md).

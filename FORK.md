@@ -28,8 +28,8 @@ an ad-hoc signature changes with every build, and the grant with it. The identit
 byte-identical to upstream and syncs do not conflict on it. A build without the identity stops and
 says to run `setup`.
 
-Syncing merges rather than rebases, so `main` never needs a force push. Needs `xcodegen` and
-`swiftlint` (`brew install xcodegen swiftlint`).
+Syncing merges rather than rebases, so `main` never needs a force push. `setup` installs
+`xcodegen`, `swiftlint` and `node` through mise, so nothing needs Homebrew.
 
 ## Its own app
 
