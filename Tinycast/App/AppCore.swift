@@ -325,8 +325,8 @@ final class AppCore {
             }
             updateChecker.start()
             forkUpdateCoordinator.start()
-            supportReminders.onDue = { [weak self] in self?.supportCoordinator.presentIfDue() }
-            supportReminders.start()
+            // The fork asks for no support: the checkout is upstream's, so the command goes too.
+            appIndex.setCommandsVisible([.support], false)
 
             hyperKeyTap.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker

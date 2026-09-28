@@ -75,7 +75,8 @@ run = "xcodegen generate"
 description = "Debug build (Tinycast Dev.app), ad-hoc signed"
 run = """
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- build 2>&1 \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- \
+  TINYCAST_SOURCE_COMMIT="$(git rev-parse HEAD)" TINYCAST_SOURCE_PATH="$PWD" build 2>&1 \
   | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
 test "${PIPESTATUS[0]}" -eq 0
 echo "→ $DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"

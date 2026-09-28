@@ -41,3 +41,13 @@ GitHub daily whether `nikteg/tinycast`'s `main` has moved past that commit. When
 lists the new commits and offers to copy `cd <clone> && git pull && mise run install` or open the
 comparison on GitHub; Later skips that head until something newer is pushed. A build from a commit
 that was never pushed says so rather than guessing. Check for Updates runs the same check on demand.
+
+## What differs from upstream
+
+- **About** shows the commit a build came from beside its version, and links to this fork's
+  repository, issues and commits instead of upstream's website and socials.
+- **No support asks.** The About card, the menu-bar and palette items, the launcher command and the
+  monthly reminder are gone — the checkout behind them is upstream's. The code stays, unwired, so
+  upstream syncs merge cleanly.
+- The About footer keeps a short licence notice. The AGPL (§5(d)) requires one in the interface of
+  any copy that is passed on, so it stays even though the rest of upstream's branding is removed.
