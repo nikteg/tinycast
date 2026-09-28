@@ -626,8 +626,77 @@ struct CalcTests {
         expectDisplayAt("weeks till 9april", "37 weeks")  // 259 / 7
         expectDisplayAt("today + 3 weeks", "14 August")
         expectDisplayAt("now + 90 min", "24 July at 1:48 AM")
-        expectDisplayAt("jul 4 - today", "345 days")
-        expectBadgesAt("jul 4 - today", source: "Sunday, 4 July, 2027", target: "Friday, 24 July")
+        expectDisplayAt("jul 4 - today", "2 weeks 6 days")
+        expectBadgesAt("jul 4 - today", source: "Saturday, 4 July", target: "Friday, 24 July")
+        // A date difference reads the current year, so a date just behind today is days back
+        expectDisplayAt("today - 10 jul", "2 weeks")
+        expectDisplayAt("today - 10. jul", "2 weeks")
+        expectDisplayAt("today - 21 jul", "3 days")
+        expectDisplayAt("today - 24 jan", "6 months")
+        expectDisplayAt("dec 25 - today", "5 months 1 day")
+        expectDisplayAt("today - 1 jan 2025", "1 year 6 months 3 weeks 2 days")
+        expectDisplayAt("today - today", "0 days")
+        // A difference is a span, the way Soulver reads a minus between two moments
+        expectDisplayAt("10 jan - 5 feb", "3 weeks 5 days")
+        expectDisplayAt("5pm - 7pm", "2 hr")
+
+        // Ranges: `to`, `through`, `between … and`, `from … to`, with an optional unit
+        expectDisplayAt("3 march to 30 may", "2 months 3 weeks 6 days")
+        expectDisplayAt("10 jul to today", "2 weeks")
+        expectDisplayAt("days between 3 march and 30 may", "88 days")
+        expectDisplayAt("1 april through 30 april in days", "30 days")
+        expectBadgesAt("1 april through 30 april in days", source: "Wednesday, 1 April", target: "Thursday, 30 April")
+        expectDisplayAt("10 march to 17 march in workdays", "5 workdays")
+        expectDisplayAt("workdays from 12 april to 15 june", "45 workdays")
+        expectDisplayAt("7:30am to 8:45pm", "13 hr 15 min")
+        expectDisplayAt("4pm to 3am", "11 hr")
+        expectDisplayAt("hours between 9am and 5pm", "8 hours")
+        expectNilAt("1/2 to 3/4")
+        expectDisplay("10 km to mi", "6.213711922 mi")
+
+        // `after` / `before`, and a comma after the day
+        expectDisplayAt("3 weeks after march 14, 2019", "4 April, 2019")
+        expectDisplayAt("28 days before march 12", "12 February")
+        expectDisplayAt("april 1, 2019 - 3 months 5 days", "27 December, 2018")
+
+        // Workdays as a counted unit
+        expectDisplayAt("workdays until 1 aug", "6 workdays")
+        expectDisplayAt("business days until 1 aug", "6 workdays")
+        expectDisplayAt("workdays in 3 weeks", "15 workdays")
+        expectDisplayAt("workdays in february", "20 workdays")
+
+        // A day then a clock needs no `at`
+        expectDisplayAt("hours until friday 5pm", "16.7 hours")
+        expectDisplayAt("time until tomorrow 9am", "1 day 8 hr 42 min")
+
+        // Named holidays, movable ones computed per year
+        expectDisplayAt("days until christmas", "154 days")
+        expectDisplayAt("easter 2027", "28 March, 2027")
+        expectDisplayAt("good friday 2027", "26 March, 2027")
+        expectDisplayAt("orthodox easter 2027", "2 May, 2027")
+        expectDisplayAt("thanksgiving 2026", "26 November")
+        expectDisplayAt("black friday 2026", "27 November")
+        expectDisplayAt("midsummer 2027", "25 June, 2027")
+        expectDisplayAt("days since new year's day", "204 days")
+        expectDisplayAt("3 days before christmas", "22 December")
+        expectDisplayAt("christmas eve at 6pm", "24 December at 6:00 PM")
+        expectNilAt("christmas")
+
+        // Facts about a date
+        expectDisplayAt("week number", "30")
+        expectDisplayAt("week number on march 12, 2021", "10")
+        expectDisplayAt("day of year", "205")
+        expectDisplayAt("day number on 15 march 2024", "75")
+        expectDisplayAt("day of month on 15 march 2024", "15")
+        expectDisplayAt("weekday on 9 march 2024", "Saturday")
+        expectDisplayAt("day of the week on 24 january 1984", "Tuesday")
+        expectDisplayAt("days in q3", "92 days")
+        expectDisplayAt("days in february 2028", "29 days")
+        expectDisplayAt("days in 2028", "366 days")
+        expectDisplayAt("days in next month", "31 days")
+        expectDisplayAt("workdays in q4", "66 workdays")
+        expectDisplayAt("midpoint between 12 march and 5 april", "24 March")
+        expectDisplayAt("year percentage", "55.9%")
         // Arithmetic with spaced operators must still be plain math, not date math
         expectDisplayAt("10 - 3", "7")
         expectDisplayAt("450 + 20%", "540")
@@ -636,8 +705,8 @@ struct CalcTests {
         expectDisplayAt("3/4 - 1/4", "0.5")
         expectDisplayAt("1/2 - 1/4", "0.25")
         // A slash date still reads as a date when the other side names a keyword
-        expectDisplayAt("9/4 - today", "42 days")
-        expectDisplayAt("today - 9/4", "-42 days")
+        expectDisplayAt("9/4 - today", "1 month 1 week 4 days")
+        expectDisplayAt("today - 9/4", "1 month 1 week 4 days")
         // Bare date/unit words alone are app searches, not cards
         expectNilAt("today")
         expectNilAt("july")
@@ -1285,7 +1354,7 @@ struct CalcTests {
         expectNilAt("today + 3 weeks - kg")
         expectNilAt("today + 5 - abc")
         // Two moments are still a difference, and letter-free operands are still arithmetic
-        expectDisplayAt("jul 4 - today", "345 days")
+        expectDisplayAt("jul 4 - today", "2 weeks 6 days")
         expectDisplay("5 + 3 - 2", "6")
         expectDisplay("5/2 - 1/2", "2")
 
@@ -1460,7 +1529,7 @@ struct CalcTests {
         expectDisplayAt("hours till jul 24 at midnight", "8,759.7 hours")
         expectDisplayAt("next monday at 9:30 - next monday at 7:00", "2 hr 30 min")
         expectDisplayAt("next monday at 9:30 - next monday at 7:00 to minutes", "150 min")
-        expectDisplayAt("2026-08-01 - 2026-07-24", "8 days")
+        expectDisplayAt("2026-08-01 - 2026-07-24", "1 week 1 day")
         expectDisplayAt("today at 9:30 - today at 7:00 to hours", "2.5 hr")
         expectDisplayAt("now + 5 seconds", "24 July at 12:18:05 AM")
         expectDisplayAt("next\u{a0}monday at\t7:30 + 5", "27 July at 12:30 PM")
@@ -1479,7 +1548,7 @@ struct CalcTests {
         expectDisplayAt("2026-03-29 at 7:30 - 2026-03-28 at 7:30 to hours", "23 hr", calendar: vienna)
         expectDisplayAt("2026-10-24 at 7:30 + 1 day", "25 October at 7:30 AM", calendar: vienna)
         expectDisplayAt("2026-10-25 at 7:30 - 2026-10-24 at 7:30 to hours", "25 hr", calendar: vienna)
-        expectDisplayAt("1:00 - 3:00", "-2 hr", calendar: vienna)
+        expectDisplayAt("1:00 - 3:00", "2 hr", calendar: vienna)
         let springNow = clock.calendar.date(from: DateComponents(year: 2026, month: 3, day: 29))!
         expectNilAt("2:30am vienna in london", now: springNow, calendar: vienna)
         // A lone date word is still an app search

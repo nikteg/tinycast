@@ -96,9 +96,18 @@ parser, while the separator still chooses ISO, month-first or day-first interpre
 - **C** — a moment ± durations: `today + 3 weeks`, `now + 90 min`,
   `17.2.26 + 100 weekdays - 4 + 2`
 - **D** — difference between two moments: `jul 4 - today`
+- **R** — a range between two moments: `3 march to 30 may`, `days between 3 march and 30 may`,
+  `workdays from 12 april to 15 june`, `1 april through 30 april in days`, `4pm to 3am`
 - **E** — a leading duration: `5 weekdays from now`, `3 days from today`, `2 weeks ago`
 - **F** — a weekday inside a future week: `monday in 3 weeks`, `friday in 2 weeks`
 - **G** — a named moment, once qualified: `tomorrow at 9am`, `next monday`, `last friday`
+- **Facts** — a part or size of a date, matched on the first word before any other grammar:
+  `week number`, `day of year on 15 march 2024`, `weekday on christmas`, `days in q3`,
+  `workdays in february 2028`, `days in next month`, `year percentage`,
+  `midpoint between 12 march and 5 april`
+
+Soulver's date syntax is the reference these follow, since it is the engine behind Raycast's
+calculator: the grammars, the unsigned differences and the holiday list all match its documentation.
 
 **An answered moment badges its weekday.** Grammars C and E resolve to a date, and the day of the
 week is the thing a date does not say out loud — so `5 weekdays from now` reads `4 September` under
@@ -133,8 +142,8 @@ because nobody types a day-and-month pair looking for an app. A month alone stil
 
 A bare date takes the year it is **nearest**, not the next one — three days behind is likelier the
 date meant than the same day twelve months out. Grammar C shifts a moment, so it reads the year the
-same way and `25. aug` and `25. aug + 3` can never disagree. Grammar D measures _to_ a moment,
-where the documented forward bias still decides: `jul 4 - today` keeps looking ahead.
+same way and `25. aug` and `25. aug + 3` can never disagree. Grammar D reads both operands the same
+way, so `today - 14 sep` late in September is `2 weeks`, not the 351 days to next year's date.
 
 `parseMoment` owns `at <time>` for every grammar, so `next monday at 7:30 + 5`,
 `hours till tomorrow at 7:30` and `3 days from next monday at 7:30` compose the same way.
@@ -149,10 +158,32 @@ use the injected Calendar, including end-of-month clamping: `31.1.26 + 1 month` 
 A calendar day preserves the wall clock across DST; 24 hours is elapsed time and may change it.
 `ago` anchors sub-day durations to now and date-only durations to today.
 
+**A difference is unsigned.** A minus between two moments reads as the span between them, so
+`jan 10 - feb 5` and `feb 5 - jan 10` are both `3 weeks 5 days` — the badges say which way it runs.
 Subtracting moments with clock times produces a timespan; `to hours` / `to minutes` / `in seconds`
 selects an elapsed-time unit. Bare clocks in a difference share today's date, so `7:30 - 13:30`
-is `-6 hr` even when one clock has already passed. Date-only differences retain calendar-day counting;
+is `6 hr` even when one clock has already passed. Date-only differences count calendar days and
+read them as years, months, weeks and days (`1 month 1 week 4 days`);
 an explicit hours target measures elapsed time, so a DST day can be 23 or 25 hours.
+
+A range (grammar R) differs from a difference in two ways. `to` runs forward, so a clock range that
+ends earlier than it starts crosses midnight: `4pm to 3am` is `11 hr`. `through` includes its last
+day, so `1 april through 30 april in days` is 30. A leading unit (`days between`, `workdays from`) or
+a trailing `in <unit>` counts in that unit; without one, the answer is a calendar span or a timespan.
+Letter-free slash operands stay fractions, as in grammar D, so `1/2 to 3/4` earns no card.
+
+`after` and `before` are grammar E's `from` in either direction: `3 weeks after march 14, 2019`,
+`28 days before christmas`. A comma after a day is dropped, and a clock may follow a day without
+`at` when it carries a colon or a meridiem: `friday 5pm`, `aug 25 10:00`. A bare `aug 5` stays a day.
+`time until <moment>` / `time since <moment>` answer a timespan.
+
+**Named holidays** are computed per year in `CalcHoliday`: fixed days (`christmas`, `christmas
+eve`, `boxing day`, `new year's eve`, `halloween`, `valentine's day`), Easter and the days hung off it
+(`good friday`, `easter monday`, `ascension`, `pentecost`), `orthodox easter`, `thanksgiving`,
+`black friday` and Swedish `midsummer`. Without a year one recurs, so it takes the bias like any
+recurring date: `days until christmas` looks ahead, `days since easter` back. With a year it answers on
+its own (`easter 2027`); alone it is an app search. Soulver's lunar holidays (Ramadan, Hanukkah,
+Chinese New Year) need an astronomical table and are left out.
 
 A bare number after a moment takes the unit that moment implies: hours off a clock time
 (`3:45pm + 5` → 8:45 PM), days off a date (`august 5 + 5` → 10 August). It is checked before the
@@ -399,7 +430,12 @@ As a **duration in date arithmetic** it counts days and skips weekends: `today +
 days, then walks only the remainder. Work stays bounded even at the 10,000-day limit, in either
 direction; `saturday + 1 business day` still lands on Monday.
 
-Public holidays are deliberately not modelled in either. The only supported source is EventKit, and a
+As a **counted unit** it is Monday to Friday over a range: `workdays until dec 1`,
+`10 march to 17 march in workdays`, `workdays in 3 weeks`, `workdays in q4`. The range is
+half-open, so the day it ends on is not counted.
+
+Public holidays are deliberately not modelled in any of them — named holidays are dates to reason
+about, not days a workday count skips. The only supported source is EventKit, and a
 calculator must never provoke its Full Calendar Access grant mid-keystroke — see the invariant above.
 
 ## Implicit multiplication
