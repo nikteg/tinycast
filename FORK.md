@@ -11,18 +11,22 @@ but lives on its own. Everything runs through [mise](https://mise.jdx.dev) tasks
 | Task | Does |
 | --- | --- |
 | `mise run bootstrap` | a fresh clone to a running app: `setup`, then `install` |
-| `mise run setup` | check macOS and Xcode, install xcodegen/swiftlint/node, add `upstream` |
+| `mise run setup` | check macOS and Xcode, install xcodegen/swiftlint/node, add `upstream`, create the signing identity |
 | `mise run install` | Release build installed as `/Applications/Tinycast Fork.app`, then launched |
-| `mise run build` / `build:release` | Debug or Release build, ad-hoc signed |
+| `mise run build` / `build:release` | Debug or Release build |
 | `mise run run` | build and relaunch `Tinycast Dev.app` |
 | `mise run check` | tests, lint and build |
 | `mise run upstream:status` | what upstream has that `main` lacks, and the reverse |
 | `mise run upstream:sync` | merge `upstream/main` into `main`, regenerate the project, build |
 | `mise run branch:merge <branch>` | merge a local feature branch into `main` |
 
-Builds are **ad-hoc signed** by passing `CODE_SIGN_IDENTITY=-` to `xcodebuild`, never by editing
-`project.yml`, so the project stays byte-identical to upstream and syncs do not conflict on it. The
-cost: an ad-hoc signature changes every build, so macOS asks for Accessibility again after a rebuild.
+Builds sign with **`Tinycast Self-Signed`**, a self-signed identity `setup` creates in the login
+keychain once per machine. Every build on that machine then carries the same signature, which is
+what makes macOS keep the Accessibility and Input Monitoring grants across rebuilds and updates —
+an ad-hoc signature changes with every build, and the grant with it. The identity is passed to
+`xcodebuild` on the command line, never written into `project.yml`, so the project stays
+byte-identical to upstream and syncs do not conflict on it. A build without the identity stops and
+says to run `setup`.
 
 Syncing merges rather than rebases, so `main` never needs a force push. Needs `xcodegen` and
 `swiftlint` (`brew install xcodegen swiftlint`).

@@ -1,5 +1,5 @@
-# Fork workflow. Builds are always ad-hoc signed, set on the command line rather than in
-# project.yml so the project stays identical to upstream and syncs never conflict on it.
+# Fork workflow. Builds sign with a local self-signed identity that `setup` creates, set on the
+# command line rather than in project.yml so the project stays identical to upstream.
 # New clone: `mise trust && mise run bootstrap`. `mise tasks` lists everything.
 
 [settings]
@@ -18,6 +18,8 @@ UPSTREAM_URL = "https://github.com/abue-ammar/tinycast.git"
 # Its own bundle id: never self-updates to upstream releases, and keeps its own prefs and TCC grants.
 FORK_NAME = "Tinycast Fork"
 FORK_BUNDLE_ID = "com.tinycast.app.fork"
+# A stable identity keeps the Accessibility grant across rebuilds; ad-hoc would change every build.
+SIGN_IDENTITY = "Tinycast Self-Signed"
 
 [tasks.setup]
 description = "Check macOS and Xcode, install the tools, add the upstream remote"
@@ -43,7 +45,23 @@ mise install --quiet
 echo "✓ xcodegen, swiftlint and node installed by mise"
 git remote get-url upstream >/dev/null 2>&1 || git remote add upstream "$UPSTREAM_URL"
 echo "✓ upstream remote → $(git remote get-url upstream)"
-echo "Ad-hoc signing needs no certificate, so there is nothing else to set up."
+if security find-identity -p codesigning | grep -qF -- "$SIGN_IDENTITY"; then
+  echo "✓ signing identity $SIGN_IDENTITY already in the keychain"
+else
+  work="$(mktemp -d)"
+  trap 'rm -rf "$work"' EXIT
+  # macOS's own LibreSSL: Homebrew's OpenSSL 3 writes a PKCS#12 the keychain cannot read.
+  /usr/bin/openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+    -keyout "$work/key.pem" -out "$work/cert.pem" -subj "/CN=$SIGN_IDENTITY" \
+    -addext "basicConstraints=critical,CA:false" \
+    -addext "keyUsage=critical,digitalSignature" \
+    -addext "extendedKeyUsage=critical,codeSigning" >/dev/null 2>&1
+  /usr/bin/openssl pkcs12 -export -inkey "$work/key.pem" -in "$work/cert.pem" \
+    -name "$SIGN_IDENTITY" -out "$work/identity.p12" -passout pass:tinycast
+  security import "$work/identity.p12" -k ~/Library/Keychains/login.keychain-db \
+    -P tinycast -A -T /usr/bin/codesign >/dev/null
+  echo "✓ created signing identity $SIGN_IDENTITY in the login keychain"
+fi
 """
 
 [tasks.install]
@@ -56,11 +74,17 @@ osascript -e "quit app id \"$FORK_BUNDLE_ID\"" 2>/dev/null || true
 pkill -x "$FORK_NAME" 2>/dev/null || true
 rm -rf "$app"
 ditto "$DERIVED_DATA/Build/Products/Release/$FORK_NAME.app" "$app"
-# Every ad-hoc build is a new signature, so the old grants no longer match it; clear them to re-prompt.
-tccutil reset Accessibility "$FORK_BUNDLE_ID" >/dev/null 2>&1 || true
-tccutil reset ListenEvent "$FORK_BUNDLE_ID" >/dev/null 2>&1 || true
 open "$app"
-echo "✓ Installed $app — grant Accessibility when it asks."
+echo "✓ Installed $app"
+"""
+
+[tasks."signing:check"]
+description = "Fail early when the signing identity is missing"
+hide = true
+run = """
+security find-identity -p codesigning | grep -qF -- "$SIGN_IDENTITY" && exit 0
+echo "✗ No $SIGN_IDENTITY identity in the keychain. Run: mise run setup" >&2
+exit 1
 """
 
 [tasks.bootstrap]
@@ -72,10 +96,11 @@ description = "Regenerate Tinycast.xcodeproj from project.yml"
 run = "xcodegen generate"
 
 [tasks.build]
-description = "Debug build (Tinycast Dev.app), ad-hoc signed"
+description = "Debug build (Tinycast Dev.app)"
+depends = ["signing:check"]
 run = """
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
   TINYCAST_SOURCE_COMMIT="$(git rev-parse HEAD)" TINYCAST_SOURCE_PATH="$PWD" build 2>&1 \
   | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
 test "${PIPESTATUS[0]}" -eq 0
@@ -84,9 +109,10 @@ echo "→ $DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"
 
 [tasks."build:release"]
 description = "Release build (Tinycast Fork.app) without installing it"
+depends = ["signing:check"]
 run = """
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
-  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
   PRODUCT_NAME="$FORK_NAME" PRODUCT_BUNDLE_IDENTIFIER="$FORK_BUNDLE_ID" \
   TINYCAST_SOURCE_COMMIT="$(git rev-parse HEAD)" TINYCAST_SOURCE_PATH="$PWD" build 2>&1 \
   | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
