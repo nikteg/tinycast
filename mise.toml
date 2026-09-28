@@ -1,0 +1,102 @@
+# Fork workflow. Builds are always ad-hoc signed, set on the command line rather than in
+# project.yml so the project stays identical to upstream and syncs never conflict on it.
+# First time: `mise trust`, then `mise tasks` to list everything.
+
+[env]
+DERIVED_DATA = "{{config_root}}/build/DerivedData"
+UPSTREAM_URL = "https://github.com/abue-ammar/tinycast.git"
+
+[tasks.gen]
+description = "Regenerate Tinycast.xcodeproj from project.yml"
+run = "xcodegen generate"
+
+[tasks.build]
+description = "Debug build (Tinycast Dev.app), ad-hoc signed"
+run = """
+xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- build 2>&1 \
+  | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
+test "${PIPESTATUS[0]}" -eq 0
+echo "→ $DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"
+"""
+
+[tasks."build:release"]
+description = "Release build (Tinycast.app), ad-hoc signed"
+run = """
+xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- build 2>&1 \
+  | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
+test "${PIPESTATUS[0]}" -eq 0
+echo "→ $DERIVED_DATA/Build/Products/Release/Tinycast.app"
+"""
+
+[tasks.run]
+description = "Build, then relaunch the Debug app"
+depends = ["build"]
+run = """
+pkill -x 'Tinycast Dev' || true
+open "$DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"
+"""
+
+[tasks.test]
+description = "Run every test harness"
+run = "./Scripts/run-tests.sh"
+
+[tasks.lint]
+description = "SwiftLint and the settings-search check"
+run = "./Scripts/lint.sh"
+
+[tasks.check]
+description = "Everything a change needs before it is done: tests, lint, build"
+depends = ["test", "lint", "build"]
+
+[tasks."upstream:status"]
+description = "Show what upstream has that main does not, and the reverse"
+run = """
+git remote get-url upstream >/dev/null 2>&1 || git remote add upstream "$UPSTREAM_URL"
+git fetch --quiet upstream
+echo "Upstream commits not in main:"; git log --oneline main..upstream/main
+echo; echo "Fork commits not upstream:"; git log --oneline upstream/main..main
+"""
+
+[tasks."upstream:sync"]
+description = "Merge upstream/main into main, regenerate the project, then build"
+run = """
+set -euo pipefail
+git remote get-url upstream >/dev/null 2>&1 || git remote add upstream "$UPSTREAM_URL"
+if [ -n "$(git status --porcelain)" ]; then echo "Working tree is dirty; commit or stash first." >&2; exit 1; fi
+git switch --quiet main
+git fetch --quiet upstream
+if git merge-base --is-ancestor upstream/main main; then echo "Already up to date with upstream."; exit 0; fi
+# A merge, never a rebase: main is published, and rewriting it would need a force push.
+if ! git merge --no-edit upstream/main; then
+  # The generated project is the usual conflict; regenerating it resolves that file for good.
+  if git diff --name-only --diff-filter=U | grep -qx 'Tinycast.xcodeproj/project.pbxproj'; then
+    git checkout --theirs Tinycast.xcodeproj/project.pbxproj
+    xcodegen generate
+    git add Tinycast.xcodeproj
+  fi
+  if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+    echo "Resolve these conflicts, then run: git commit --no-edit && mise run build" >&2
+    git diff --name-only --diff-filter=U >&2
+    exit 1
+  fi
+  git commit --no-edit
+fi
+xcodegen generate
+if [ -n "$(git status --porcelain Tinycast.xcodeproj)" ]; then
+  git commit --quiet -m "Regenerate Tinycast.xcodeproj after upstream sync" Tinycast.xcodeproj
+fi
+mise run build
+echo "Synced. Push with: git push origin main"
+"""
+
+[tasks."branch:merge"]
+description = "Merge a local branch into main: mise run branch:merge <branch>"
+usage = 'arg "<branch>"'
+run = """
+set -euo pipefail
+if [ -n "$(git status --porcelain)" ]; then echo "Working tree is dirty; commit or stash first." >&2; exit 1; fi
+git switch --quiet main
+git merge --no-ff --no-edit "${usage_branch}"
+"""
