@@ -1,23 +1,26 @@
 import AppKit
 
-/// Mater's original sounds: a wind-up as a phase starts, a click on pause, resume and stop, a ding.
+/// Mater v2.0.3's wind-up as a phase starts; its current toggles on pause and resume, and ding.
 @MainActor
 final class PomodoroSoundRunner {
     enum Cue {
         case windUp
-        case click
+        case toggleOn
+        case toggleOff
         case ding
     }
 
     private lazy var windUp = Self.sound("pomodoro-windup")
-    private lazy var click = Self.sound("pomodoro-click")
+    private lazy var toggleOn = Self.sound("pomodoro-toggle-on")
+    private lazy var toggleOff = Self.sound("pomodoro-toggle-off")
     private lazy var ding = Self.sound("pomodoro-ding")
 
     func play(_ cue: Cue) {
         let sound =
             switch cue {
             case .windUp: windUp
-            case .click: click
+            case .toggleOn: toggleOn
+            case .toggleOff: toggleOff
             case .ding: ding
             }
         sound?.stop()

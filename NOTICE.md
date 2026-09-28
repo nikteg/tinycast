@@ -99,8 +99,10 @@ SOFTWARE.
 
 ## Pomodoro sounds — `Tinycast/Features/Pomodoro/Sounds/*.wav`
 
-The wind-up, click and ding samples come from Mater (<https://github.com/jasonlong/mater>), as
-released in Mater v2.0.3, before its Swift rewrite replaced them. Mater is MIT licensed:
+All four come from Mater (<https://github.com/jasonlong/mater>): `pomodoro-windup.wav` as released
+in Mater v2.0.3, and the ding and toggle samples from its current Swift app. Those three are by
+snd.dev (<https://snd.dev>), whose licence allows them inside an app but not redistributed on their
+own: do not lift them out of Tinycast as a sound pack. Mater is MIT licensed:
 
 ```
 MIT License
