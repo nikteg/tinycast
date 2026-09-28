@@ -64,7 +64,11 @@ Hiding schedules Pop to Root Search, and `PaletteWindowController.popToRoot` is 
 palette returns to the launcher *and* chat starts a new conversation, at once or after
 `popToRootTimeout`, unless a re-summon inside that window consumes the pending reset first. An
 unfinished chat is a thing being done, exactly like a typed query, so the screen and the conversation
-are reset together rather than the screen alone. A reply still streaming is the one exception — it was
+are reset together rather than the screen alone. **The launcher's own text is the one thing a pop to
+root keeps**: `PaletteState.popToLauncher` restores whatever the launcher's field last held — on screen,
+or the bottom frame under a pushed screen — and the next show selects it, so typing replaces it and
+Escape clears it. That is Raycast's root search, and it needs no preference: the text is only ever
+what the reader typed, and clearing it is one keystroke. A reply still streaming is the one exception — it was
 asked for, and resetting would throw the answer away. Nothing is lost either way: a conversation is
 written to Chat History, and the AI Chat window's sidebar, as soon as it has a message.
 

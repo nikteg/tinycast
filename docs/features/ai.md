@@ -197,7 +197,7 @@ bottom with the model picker. ⌘J hands a Quick AI conversation to the window.
   `threadId`, so a Stop ends only its own. The app-server's server list is fixed at launch, so a
   turn armed with a different one relaunches it and ends the other chats' live threads with a
   reason, rather than leaving them waiting on a process that is gone.
-- **Quick AI's lifetime is decided on the way in.** Pop to Root forgets the screen and the query;
+- **Quick AI's lifetime is decided on the way in.** Pop to Root forgets the screen and its draft;
   whether the next summon resumes the transcript is Settings → AI's `Quick AI opens to`, applied in
   `QuickAICoordinator.applyOpenPolicy` on the way into `.ai`. That used to be Pop to Root's job by
   accident — it fires on every hide, so a chat never survived Escape — and deciding at open time from

@@ -15,6 +15,8 @@ final class PaletteState {
     /// The screens below `mode`, innermost last: a summon starts a new one, navigating pushes on.
     private(set) var backStack: [PaletteFrame] = []
     var query: String = ""
+    /// What the launcher's field last held, which a pop to root brings back for typing over.
+    private var launcherQuery = ""
     var selection: Int = 0
     /// True while an IME holds marked text, which leaves `query` empty. The panel publishes it.
     var isComposing = false
@@ -92,12 +94,20 @@ final class PaletteState {
 
     /// Open `mode` as the root: a fresh screen with nothing behind it to go back to.
     func prepare(mode: PaletteMode) {
+        rememberLauncherQuery()
         backStack.removeAll()
         replace(mode: mode)
     }
 
+    /// Pop to Root Search: every screen resets, but the launcher's own text survives the close.
+    func popToLauncher() {
+        prepare(mode: .launcher)
+        query = launcherQuery
+    }
+
     /// Swap the screen in place, leaving whatever it was opened over still behind it.
     func replace(mode: PaletteMode) {
+        rememberLauncherQuery()
         openScreen(mode)
         resetToken = UUID()
     }
@@ -135,6 +145,15 @@ final class PaletteState {
     /// Tab closing the ring on the launcher, which is its root: nothing is left behind it.
     func resetNavigation() {
         backStack.removeAll()
+    }
+
+    /// The launcher is the root, so when it is not on screen it can only be the bottom frame.
+    private func rememberLauncherQuery() {
+        if mode == .launcher {
+            launcherQuery = query
+        } else if let root = backStack.first, root.mode == .launcher {
+            launcherQuery = root.query
+        }
     }
 
     private func openScreen(_ mode: PaletteMode) {
