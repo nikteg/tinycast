@@ -77,6 +77,11 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case menuBarLinkedEventsOnly = "calendar.menuBarLinkedEventsOnly"
     case calendarMenuBarHidesWhenEmpty = "calendar.menuBarHidesWhenEmpty"
     case hideCurrentEvent = "calendar.hideCurrentEventAfterMinutes"
+    case pomodoroWorkMinutes = "pomodoro.workMinutes"
+    case pomodoroRestMinutes = "pomodoro.breakMinutes"
+    case pomodoroNotificationsEnabled = "pomodoro.notifications"
+    case pomodoroSoundsEnabled = "pomodoro.sounds"
+    case pomodoroMenuBarEnabled = "pomodoro.menuBar"
     case extensionsShowInLauncher = "extensions.showInLauncher"
 
     /// The top-level object the key sits in.

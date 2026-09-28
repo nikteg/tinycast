@@ -495,6 +495,33 @@ final class AppSettings {
         didSet { defaults.set(hideCurrentEvent.rawValue, forKey: Key.hideCurrentEvent.rawValue) }
     }
 
+    var pomodoroWorkMinutes: Int {
+        didSet { defaults.set(pomodoroWorkMinutes, forKey: Key.pomodoroWorkMinutes.rawValue) }
+    }
+
+    var pomodoroRestMinutes: Int {
+        didSet { defaults.set(pomodoroRestMinutes, forKey: Key.pomodoroRestMinutes.rawValue) }
+    }
+
+    var pomodoroSoundsEnabled: Bool {
+        didSet { defaults.set(pomodoroSoundsEnabled, forKey: Key.pomodoroSoundsEnabled.rawValue) }
+    }
+
+    var pomodoroNotificationsEnabled: Bool {
+        didSet {
+            defaults.set(
+                pomodoroNotificationsEnabled, forKey: Key.pomodoroNotificationsEnabled.rawValue)
+        }
+    }
+
+    var pomodoroMenuBarEnabled: Bool {
+        didSet { defaults.set(pomodoroMenuBarEnabled, forKey: Key.pomodoroMenuBarEnabled.rawValue) }
+    }
+
+    var pomodoroDurations: PomodoroDurations {
+        PomodoroDurations(workMinutes: pomodoroWorkMinutes, restMinutes: pomodoroRestMinutes)
+    }
+
     /// Off means fully off: no launcher entries, and a still-registered shortcut moves nothing.
     var windowManagementEnabled: Bool {
         didSet {
@@ -736,6 +763,23 @@ final class AppSettings {
             defaults.object(forKey: Key.hideCurrentEvent.rawValue)
             .flatMap { $0 as? Int }
             .flatMap(HideCurrentEvent.init(rawValue:)) ?? .dontHide
+        pomodoroWorkMinutes =
+            (defaults.object(forKey: Key.pomodoroWorkMinutes.rawValue) as? Int)
+            .flatMap { PomodoroDurations.workRange.contains($0) ? $0 : nil }
+            ?? PomodoroDurations.standard.workMinutes
+        pomodoroRestMinutes =
+            (defaults.object(forKey: Key.pomodoroRestMinutes.rawValue) as? Int)
+            .flatMap { PomodoroDurations.restRange.contains($0) ? $0 : nil }
+            ?? PomodoroDurations.standard.restMinutes
+        pomodoroSoundsEnabled =
+            defaults.object(forKey: Key.pomodoroSoundsEnabled.rawValue) == nil
+            || defaults.bool(forKey: Key.pomodoroSoundsEnabled.rawValue)
+        pomodoroNotificationsEnabled =
+            defaults.object(forKey: Key.pomodoroNotificationsEnabled.rawValue) == nil
+            || defaults.bool(forKey: Key.pomodoroNotificationsEnabled.rawValue)
+        pomodoroMenuBarEnabled =
+            defaults.object(forKey: Key.pomodoroMenuBarEnabled.rawValue) == nil
+            || defaults.bool(forKey: Key.pomodoroMenuBarEnabled.rawValue)
         navigationEnabled = defaults.bool(forKey: Key.navigationEnabled.rawValue)
         menuSearchDisabledApps =
             defaults.stringArray(forKey: Key.menuSearchDisabledApps.rawValue) ?? []

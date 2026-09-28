@@ -86,6 +86,11 @@ struct SettingsBackup: Codable {
         var menuBarLinkedEventsOnly: Bool?
         var calendarMenuBarHidesWhenEmpty: Bool?
         var hideCurrentEvent: Int?
+        var pomodoroWorkMinutes: Int?
+        var pomodoroRestMinutes: Int?
+        var pomodoroSoundsEnabled: Bool?
+        var pomodoroNotificationsEnabled: Bool?
+        var pomodoroMenuBarEnabled: Bool?
         // Safe to carry: it silences a prompt rather than granting anything.
         var supportReminders: Bool?
     }
@@ -188,6 +193,11 @@ extension SettingsBackup {
             menuBarLinkedEventsOnly: s.menuBarLinkedEventsOnly,
             calendarMenuBarHidesWhenEmpty: s.calendarMenuBarHidesWhenEmpty,
             hideCurrentEvent: s.hideCurrentEvent.rawValue,
+            pomodoroWorkMinutes: s.pomodoroWorkMinutes,
+            pomodoroRestMinutes: s.pomodoroRestMinutes,
+            pomodoroSoundsEnabled: s.pomodoroSoundsEnabled,
+            pomodoroNotificationsEnabled: s.pomodoroNotificationsEnabled,
+            pomodoroMenuBarEnabled: s.pomodoroMenuBarEnabled,
             supportReminders: s.supportRemindersEnabled)
 
         let hk = core.hotKeys
@@ -532,6 +542,26 @@ extension SettingsBackup {
         }
         if let raw = s.hideCurrentEvent, let hide = HideCurrentEvent(rawValue: raw) {
             settings.hideCurrentEvent = hide
+            count += 1
+        }
+        if let minutes = s.pomodoroWorkMinutes, PomodoroDurations.workRange.contains(minutes) {
+            settings.pomodoroWorkMinutes = minutes
+            count += 1
+        }
+        if let minutes = s.pomodoroRestMinutes, PomodoroDurations.restRange.contains(minutes) {
+            settings.pomodoroRestMinutes = minutes
+            count += 1
+        }
+        if let flag = s.pomodoroSoundsEnabled {
+            settings.pomodoroSoundsEnabled = flag
+            count += 1
+        }
+        if let flag = s.pomodoroNotificationsEnabled {
+            settings.pomodoroNotificationsEnabled = flag
+            count += 1
+        }
+        if let flag = s.pomodoroMenuBarEnabled {
+            settings.pomodoroMenuBarEnabled = flag
             count += 1
         }
         if let flag = s.supportReminders {

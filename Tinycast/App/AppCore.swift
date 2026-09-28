@@ -44,6 +44,7 @@ final class AppCore {
     let currencyRates = CurrencyRateStore()
     let regionNumberFormat = RegionNumberFormatMonitor()
     let calendarStore = CalendarStore()
+    let pomodoroStore = PomodoroStore()
     let meetingClock = MeetingClock()
     let updateChecker = UpdateCheckStore()
     let supportReminders: SupportReminderStore
@@ -180,6 +181,8 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var calendarCoordinator = CalendarCoordinator(
         store: calendarStore, clock: meetingClock, appIndex: appIndex, settings: settings,
         paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var pomodoroCoordinator = PomodoroCoordinator(
+        store: pomodoroStore, settings: settings, appIndex: appIndex, core: self)
     @ObservationIgnored private(set) lazy var fileSearchCoordinator = FileSearchCoordinator(
         settings: settings, appIndex: appIndex, session: fileSearch, palette: palette,
         paletteCoordinator: paletteCoordinator, windowController: windowController, core: self)
@@ -317,6 +320,7 @@ final class AppCore {
             }
             updateCoordinator.applyEnabled()
             calendarCoordinator.applyEnabled()
+            pomodoroCoordinator.start()
             Task { await appIndex.refresh() }
             Task { await emojiIndex.load() }
             currencyRates.start()
@@ -631,6 +635,12 @@ final class AppCore {
                 _ = $0.menuBarLinkedEventsOnly
                 _ = $0.hideCurrentEvent
             }, reproject: { $0.calendarCoordinator.applyClock() })
+        track(
+            {
+                _ = $0.pomodoroWorkMinutes
+                _ = $0.pomodoroRestMinutes
+                _ = $0.pomodoroNotificationsEnabled
+            }, reproject: { $0.pomodoroCoordinator.applySettings() })
         track(
             {
                 _ = $0.fileSearchScopes

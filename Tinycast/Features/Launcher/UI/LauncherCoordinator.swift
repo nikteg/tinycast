@@ -205,6 +205,18 @@ final class LauncherCoordinator {
             calendarCoordinator.openNextMeetingInCalendar()
         case .createEvent:
             calendarCoordinator.createEvent()
+        case .startPomodoro:
+            dismissPalette()
+            core.pomodoroCoordinator.startCycle()
+        case .pausePomodoro:
+            dismissPalette()
+            core.pomodoroCoordinator.togglePause()
+        case .skipPomodoroPhase:
+            dismissPalette()
+            core.pomodoroCoordinator.skip()
+        case .stopPomodoro:
+            dismissPalette()
+            core.pomodoroCoordinator.stop()
         case .showNotes:
             dismissPalette()
             notesCoordinator.toggle()

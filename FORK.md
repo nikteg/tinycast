@@ -48,6 +48,8 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
 
 ## What differs from upstream
 
+- **Pomodoro.** A work/break timer after Mater, with its sounds, a menu-bar countdown and a
+  notification at each change. See [docs/features/pomodoro.md](docs/features/pomodoro.md).
 - **About** shows the commit a build came from beside its version, and links to this fork's
   repository, issues and commits instead of upstream's website and socials.
 - **No support asks.** The About card, the menu-bar and palette items, the launcher command and the

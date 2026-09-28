@@ -185,8 +185,8 @@ which is `[start - lead, start)` for **Automatically** and `[start - lead, min(s
 for the timed options. Because the earliest qualifying event wins, one hiding hands the space to the
 next with no extra logic.
 
-**The calendar's item and Tinycast's own item are two independent `MenuBarExtra` scenes**, each
-inserted by one preference and reading nothing off the other: `showInMenuBar` on General for
+**The calendar's item and Tinycast's own item are two independent `MenuBarExtra` scenes** (the
+[Pomodoro](pomodoro.md) countdown is a third), each inserted by one preference and reading nothing off the other: `showInMenuBar` on General for
 Tinycast's, `calendarMenuBarDisplay` here for the calendar's. Either may be the only one in the menu
 bar, both may be, or neither. Dragging the calendar item out writes `.disabled`, which is what the
 picker already said — it never touches `showInMenuBar`.

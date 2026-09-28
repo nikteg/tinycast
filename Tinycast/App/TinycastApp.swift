@@ -7,7 +7,7 @@ struct TinycastApp: App {
     // Channel-aware: "Tinycast", "Tinycast Dev", or "Tinycast Beta".
     private let appName = Bundle.main.appDisplayName
 
-    /// Two independent items: one preference each, no state either can read off the other.
+    /// Independent items: one preference each, no state any can read off another.
     var body: some Scene {
         MenuBarExtra(isInserted: menuBarInsertion) {
             MenuBarMenu(appName: appName)
@@ -20,6 +20,12 @@ struct TinycastApp: App {
             CalendarMenuBarMenu()
         } label: {
             CalendarMenuBarLabel(appName: appName)
+        }
+
+        MenuBarExtra(isInserted: pomodoroMenuBarInsertion) {
+            PomodoroMenuBarMenu()
+        } label: {
+            PomodoroMenuBarLabel(appName: appName)
         }
     }
 
@@ -51,6 +57,18 @@ struct TinycastApp: App {
                     else { return }
                     settings.calendarMenuBarDisplay = .disabled
                 }
+            })
+    }
+
+    /// Shown only while a cycle exists; dragging it out turns the countdown off.
+    private var pomodoroMenuBarInsertion: Binding<Bool> {
+        let settings = AppCore.shared.settings
+        let isInserted = settings.pomodoroMenuBarEnabled && AppCore.shared.pomodoroStore.timer != nil
+        return Binding(
+            get: { isInserted },
+            set: { inserted in
+                guard !inserted, isInserted else { return }
+                settings.pomodoroMenuBarEnabled = false
             })
     }
 

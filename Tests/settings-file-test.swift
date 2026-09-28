@@ -48,7 +48,7 @@ struct SettingsFileTest {
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
                 "commands", "quicklinks", "appleShortcuts", "ai", "quickActions", "fileSearch",
                 "notes", "snippets", "navigation", "windowManagement", "clipboard", "emoji",
-                "calendar", "extensions"
+                "calendar", "pomodoro", "extensions"
             ])
 
         // A file that could switch one of these on would grant what only the app may ask for.

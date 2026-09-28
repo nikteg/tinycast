@@ -114,6 +114,8 @@ Where a number has a special case, the case is a word:
 | `calendar.menuBar` | `"disabled"`, `"meetingIcon"`, `"meetingTitle"` |
 | `calendar.menuBarUpcomingEvents` | `"today"`, or 2, 5, 10, 30 minutes before |
 | `calendar.hideCurrentEventAfterMinutes` | `"never"`, 0 (as it starts), 5, 10, 30 |
+| `pomodoro.workMinutes` | 1 to 60 |
+| `pomodoro.breakMinutes` | 1 to 30 |
 | `windowManagement.gap` | 0 to 64 |
 | `snippets.folder`, `notes.folder` | an absolute or `~/` path, or `null` for Application Support |
 

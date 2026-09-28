@@ -64,6 +64,7 @@ extension SettingsTab {
         case .emoji: [.searchEmoji]
         case .calendar:
             [.joinNextMeeting, .mySchedule, .createEvent, .copyMeetingLink, .openInCalendar]
+        case .pomodoro: [.startPomodoro, .pausePomodoro, .skipPomodoroPhase, .stopPomodoro]
         default: []
         }
     }

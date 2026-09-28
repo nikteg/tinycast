@@ -107,6 +107,17 @@ enum SettingsFileSchema {
         case .menuBarLinkedEventsOnly: return bind(settings, \.menuBarLinkedEventsOnly)
         case .calendarMenuBarHidesWhenEmpty: return bind(settings, \.calendarMenuBarHidesWhenEmpty)
         case .hideCurrentEvent: return bind(settings, \.hideCurrentEvent)
+        case .pomodoroWorkMinutes:
+            return bind(settings, \.pomodoroWorkMinutes) {
+                PomodoroDurations.workRange.contains($0) ? $0 : nil
+            }
+        case .pomodoroRestMinutes:
+            return bind(settings, \.pomodoroRestMinutes) {
+                PomodoroDurations.restRange.contains($0) ? $0 : nil
+            }
+        case .pomodoroNotificationsEnabled: return bind(settings, \.pomodoroNotificationsEnabled)
+        case .pomodoroSoundsEnabled: return bind(settings, \.pomodoroSoundsEnabled)
+        case .pomodoroMenuBarEnabled: return bind(settings, \.pomodoroMenuBarEnabled)
         case .extensionsShowInLauncher: return bind(settings, \.extensionsShowInLauncher)
         }
     }

@@ -61,6 +61,11 @@ enum SettingsBackupCoverage {
         "menuBarLinkedEventsOnly": .menuBarLinkedEventsOnly,
         "calendarMenuBarHidesWhenEmpty": .calendarMenuBarHidesWhenEmpty,
         "hideCurrentEvent": .hideCurrentEvent,
+        "pomodoroWorkMinutes": .pomodoroWorkMinutes,
+        "pomodoroRestMinutes": .pomodoroRestMinutes,
+        "pomodoroSoundsEnabled": .pomodoroSoundsEnabled,
+        "pomodoroNotificationsEnabled": .pomodoroNotificationsEnabled,
+        "pomodoroMenuBarEnabled": .pomodoroMenuBarEnabled,
         "supportReminders": .supportReminders
     ]
 

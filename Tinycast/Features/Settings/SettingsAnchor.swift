@@ -92,6 +92,10 @@ extension SettingsAnchor {
     static let calendarJoining = Self(tab: .calendar, title: "Joining")
     static let calendarMenuBar = Self(tab: .calendar, title: "Menu Bar")
     static let calendarCalendars = Self(tab: .calendar, title: "Calendars")
+    static let pomodoroTimer = Self(tab: .pomodoro, title: "Timer")
+    static let pomodoroAlerts = Self(tab: .pomodoro, title: "Alerts")
+    static let pomodoroMenuBar = Self(tab: .pomodoro, title: "Menu Bar")
+    static let pomodoroCommands = Self(tab: .pomodoro, title: "Commands")
 
     static let extensionsExtensions = Self(tab: .extensions, title: "Extensions")
     static let extensionsCompatibility = Self(tab: .extensions, title: "Compatibility")

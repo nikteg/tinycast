@@ -110,7 +110,7 @@ enum SettingsSearchCatalog {
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings + systemActions + commands + quicklinks
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
-        + navigation + notes + calendar + emoji + ai + quickActions + extensions + permissions
+        + navigation + notes + calendar + pomodoro + emoji + ai + quickActions + extensions + permissions
         + backup + about
 
     private static let general: [SettingsSearchEntry] = [
@@ -545,6 +545,20 @@ enum SettingsSearchCatalog {
         .init(
             group: .calendarCalendars, "Calendars",
             keywords: ["accounts", "sources", "choose", "icloud", "google"])
+    ]
+
+    private static let pomodoro: [SettingsSearchEntry] = [
+        .init(pane: .pomodoro, keywords: ["timer", "focus", "break", "tomato", "mater", "work"]),
+        .init(.pomodoroTimer, "Work Length", keywords: ["duration", "minutes", "focus", "25"]),
+        .init(.pomodoroTimer, "Break Length", keywords: ["duration", "minutes", "rest", "pause", "5"]),
+        .init(.pomodoroAlerts, "Show Notifications", keywords: ["alert", "banner", "remind"]),
+        .init(.pomodoroAlerts, "Play Sounds", keywords: ["ding", "tick", "wind", "audio", "mute"]),
+        .init(
+            .pomodoroMenuBar, "Countdown in Menu Bar",
+            keywords: ["status item", "menubar", "minutes left"]),
+        .init(
+            group: .pomodoroCommands, "Pomodoro commands",
+            keywords: ["shortcut", "launcher", "start", "pause", "resume", "skip", "stop"])
     ]
 
     private static let extensions: [SettingsSearchEntry] = [
