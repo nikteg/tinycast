@@ -38,7 +38,7 @@ final class UpdateCoordinator {
 
     /// A local build has no release stream, so it does not advertise the command either.
     func applyEnabled() {
-        core.appIndex.setCommandsVisible([.checkForUpdates], store.channel.updatesItself)
+        core.appIndex.setCommandsVisible([.checkForUpdates], store.channel.updatesItself || store.channel == .fork)
     }
 
     func focusExisting() -> Bool {
@@ -54,6 +54,10 @@ final class UpdateCoordinator {
 
     /// The manual action: always opens the window and always asks GitHub.
     func checkForUpdates() {
+        if store.channel == .fork {
+            core.forkUpdateCoordinator.checkForUpdates()
+            return
+        }
         guard store.channel.updatesItself else {
             stage = .localBuild
             present()

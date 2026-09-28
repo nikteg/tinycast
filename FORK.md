@@ -1,10 +1,18 @@
 # This fork
 
+```sh
+git clone https://github.com/nikteg/tinycast.git && cd tinycast
+mise trust && mise run bootstrap
+```
+
 A personal fork of [abue-ammar/tinycast](https://github.com/abue-ammar/tinycast) that follows upstream
 but lives on its own. Everything runs through [mise](https://mise.jdx.dev) tasks (`mise tasks`):
 
 | Task | Does |
 | --- | --- |
+| `mise run bootstrap` | a fresh clone to a running app: `setup`, then `install` |
+| `mise run setup` | check macOS and Xcode, install xcodegen/swiftlint/node, add `upstream` |
+| `mise run install` | Release build installed as `/Applications/Tinycast Fork.app`, then launched |
 | `mise run build` / `build:release` | Debug or Release build, ad-hoc signed |
 | `mise run run` | build and relaunch `Tinycast Dev.app` |
 | `mise run check` | tests, lint and build |
@@ -18,3 +26,18 @@ cost: an ad-hoc signature changes every build, so macOS asks for Accessibility a
 
 Syncing merges rather than rebases, so `main` never needs a force push. Needs `xcodegen` and
 `swiftlint` (`brew install xcodegen swiftlint`).
+
+## Its own app
+
+`mise run install` builds **Tinycast Fork** (`com.tinycast.app.fork`), a separate app from upstream's
+Tinycast: its own preferences, Application Support folder, TCC grants and login item, so both can be
+installed side by side. Do not run both at once — whichever registers a hotkey first keeps it.
+
+## Updates
+
+The fork publishes no GitHub releases, so it never installs one. `build:release` stamps the commit and
+clone path it was built from into Info.plist, and the `.fork` channel's `ForkUpdateChecker` asks
+GitHub daily whether `nikteg/tinycast`'s `main` has moved past that commit. When it has, a dialog
+lists the new commits and offers to copy `cd <clone> && git pull && mise run install` or open the
+comparison on GitHub; Later skips that head until something newer is pushed. A build from a commit
+that was never pushed says so rather than guessing. Check for Updates runs the same check on demand.

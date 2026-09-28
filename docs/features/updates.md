@@ -70,6 +70,7 @@ release feed the website already reads is the feed the app reads.
 | --- | --- | --- |
 | `com.tinycast.app` | `.stable` | releases |
 | `com.tinycast.app.beta` | `.beta` | prereleases |
+| `com.tinycast.app.fork` | `.fork` | the fork's `main` — see [FORK.md](../../FORK.md#updates) |
 | anything else | `.development` | nothing |
 
 `AppVersion` parses `MAJOR.MINOR.PATCH` and `MAJOR.MINOR.PATCH-beta.N` with semver precedence: a

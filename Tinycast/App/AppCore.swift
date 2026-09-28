@@ -194,6 +194,7 @@ final class AppCore {
         paletteCoordinator: paletteCoordinator)
     @ObservationIgnored private(set) lazy var updateCoordinator = UpdateCoordinator(
         store: updateChecker, core: self)
+    @ObservationIgnored private(set) lazy var forkUpdateCoordinator = ForkUpdateCoordinator(core: self)
     @ObservationIgnored private(set) lazy var supportCoordinator = SupportCoordinator(
         store: supportReminders, core: self)
     @ObservationIgnored private(set) lazy var quickActionCoordinator = QuickActionCoordinator(
@@ -323,6 +324,7 @@ final class AppCore {
                 self?.updateCoordinator.presentIfAvailable(release) ?? true
             }
             updateChecker.start()
+            forkUpdateCoordinator.start()
             supportReminders.onDue = { [weak self] in self?.supportCoordinator.presentIfDue() }
             supportReminders.start()
 

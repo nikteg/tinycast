@@ -30,6 +30,7 @@ struct UpdatesTests {
         laysOutTheChangelog()
         linksMentionsAndPullRequests()
         blocksWhileBusy()
+        followsTheFork()
 
         print("\(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
@@ -111,6 +112,10 @@ struct UpdatesTests {
 
         expect(stable.updatesItself && beta.updatesItself, "both shipped channels update")
         expect(!dev.updatesItself, "a local build does not update itself")
+        let fork = ReleaseChannel(bundleID: "com.tinycast.app.fork")
+        expect(fork == .fork, "the fork's bundle id is its own channel")
+        expect(!fork.updatesItself, "the fork never installs an upstream release")
+        expect(!fork.accepts(prerelease: false) && !fork.accepts(prerelease: true), "the fork takes no releases")
 
         expect(stable.accepts(prerelease: false), "stable takes releases")
         expect(!stable.accepts(prerelease: true), "stable never crosses to a prerelease")
@@ -455,4 +460,39 @@ struct UpdatesTests {
             UpdateReadiness.Blocker.expandingSnippet.message.hasSuffix("."),
             "every blocker reads as a sentence the window can show")
     }
+
+    // MARK: - ForkFeed
+
+    static func followsTheFork() {
+        let behind = Data("""
+            {"status": "ahead", "ahead_by": 2, "html_url": "https://github.com/nikteg/tinycast/compare/abc...main",
+             "commits": [
+               {"sha": "111", "commit": {"message": "Older change\\n\\nWith a body"}},
+               {"sha": "222", "commit": {"message": "Newest change"}}
+             ]}
+            """.utf8)
+        guard case .available(let update)? = ForkFeed.status(from: behind) else {
+            expect(false, "a main ahead of the build is an update")
+            return
+        }
+        expect(update.head == "222", "the head is the newest commit, which is what Later skips")
+        expect(update.aheadBy == 2, "the count is GitHub's ahead_by")
+        expect(update.subjects == ["Newest change", "Older change"], "subjects are first lines, newest first")
+
+        let current = Data("""
+            {"status": "behind", "ahead_by": 0, "html_url": "https://github.com/x", "commits": []}
+            """.utf8)
+        expect(ForkFeed.status(from: current) == .upToDate, "a build main does not trail is up to date")
+        expect(ForkFeed.status(from: Data("nope".utf8)) == nil, "an unreadable body is no answer")
+
+        expect(ForkFeed.endpoint(comparing: "abc123") != nil, "a hex commit makes an endpoint")
+        expect(ForkFeed.endpoint(comparing: "") == nil, "an unstamped build has no endpoint")
+        expect(ForkFeed.endpoint(comparing: "../x") == nil, "only a hex commit reaches the URL")
+
+        expect(ForkFeed.command(sourcePath: nil) == "git pull && mise run install", "no path, bare command")
+        expect(
+            ForkFeed.command(sourcePath: "/Users/me/it's here") == "cd '/Users/me/it'\\''s here' && git pull && mise run install",
+            "the clone path is shell-quoted")
+    }
+
 }

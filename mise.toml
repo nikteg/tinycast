@@ -1,10 +1,71 @@
 # Fork workflow. Builds are always ad-hoc signed, set on the command line rather than in
 # project.yml so the project stays identical to upstream and syncs never conflict on it.
-# First time: `mise trust`, then `mise tasks` to list everything.
+# New clone: `mise trust && mise run bootstrap`. `mise tasks` lists everything.
+
+[settings]
+# Tasks use bash's PIPESTATUS and `set -o pipefail`.
+unix_default_inline_shell_args = "bash -c -o errexit"
+
+[tools]
+"aqua:yonaskolb/XcodeGen" = "2.46.0"
+"aqua:realm/SwiftLint" = "0.65.1"
+# The test suite's stub servers; building the app never needs it.
+node = "24"
 
 [env]
 DERIVED_DATA = "{{config_root}}/build/DerivedData"
 UPSTREAM_URL = "https://github.com/abue-ammar/tinycast.git"
+# Its own bundle id: never self-updates to upstream releases, and keeps its own prefs and TCC grants.
+FORK_NAME = "Tinycast Fork"
+FORK_BUNDLE_ID = "com.tinycast.app.fork"
+
+[tasks.setup]
+description = "Check macOS and Xcode, install the tools, add the upstream remote"
+run = """
+set -euo pipefail
+major="$(sw_vers -productVersion | cut -d. -f1)"
+if [ "$major" -lt 26 ]; then echo "✗ Tinycast needs macOS 26 or later (this is $(sw_vers -productVersion))." >&2; exit 1; fi
+echo "✓ macOS $(sw_vers -productVersion)"
+if ! xcodebuild -version >/dev/null 2>&1; then
+  if [ -d /Applications/Xcode.app ]; then
+    echo "✗ xcode-select points at the Command Line Tools. Run:" >&2
+    echo "    sudo xcode-select -s /Applications/Xcode.app" >&2
+  else
+    echo "✗ Xcode 26 is not installed. Get it from the App Store, open it once, then re-run." >&2
+  fi
+  exit 1
+fi
+if ! xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+  echo "✗ Xcode has not finished its first launch. Run: sudo xcodebuild -runFirstLaunch" >&2; exit 1
+fi
+echo "✓ $(xcodebuild -version | head -1)"
+mise install --quiet
+echo "✓ xcodegen, swiftlint and node installed by mise"
+git remote get-url upstream >/dev/null 2>&1 || git remote add upstream "$UPSTREAM_URL"
+echo "✓ upstream remote → $(git remote get-url upstream)"
+echo "Ad-hoc signing needs no certificate, so there is nothing else to set up."
+"""
+
+[tasks.install]
+description = "Release build installed to /Applications as Tinycast Fork, then launched"
+depends = ["build:release"]
+run = """
+set -euo pipefail
+app="/Applications/$FORK_NAME.app"
+osascript -e "quit app id \"$FORK_BUNDLE_ID\"" 2>/dev/null || true
+pkill -x "$FORK_NAME" 2>/dev/null || true
+rm -rf "$app"
+ditto "$DERIVED_DATA/Build/Products/Release/$FORK_NAME.app" "$app"
+# Every ad-hoc build is a new signature, so the old grants no longer match it; clear them to re-prompt.
+tccutil reset Accessibility "$FORK_BUNDLE_ID" >/dev/null 2>&1 || true
+tccutil reset ListenEvent "$FORK_BUNDLE_ID" >/dev/null 2>&1 || true
+open "$app"
+echo "✓ Installed $app — grant Accessibility when it asks."
+"""
+
+[tasks.bootstrap]
+description = "Fresh clone to a running app: setup, then install"
+run = ["mise run setup", "mise run install"]
 
 [tasks.gen]
 description = "Regenerate Tinycast.xcodeproj from project.yml"
@@ -21,13 +82,15 @@ echo "→ $DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"
 """
 
 [tasks."build:release"]
-description = "Release build (Tinycast.app), ad-hoc signed"
+description = "Release build (Tinycast Fork.app) without installing it"
 run = """
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
-  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- build 2>&1 \
+  -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY=- \
+  PRODUCT_NAME="$FORK_NAME" PRODUCT_BUNDLE_IDENTIFIER="$FORK_BUNDLE_ID" \
+  TINYCAST_SOURCE_COMMIT="$(git rev-parse HEAD)" TINYCAST_SOURCE_PATH="$PWD" build 2>&1 \
   | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u
 test "${PIPESTATUS[0]}" -eq 0
-echo "→ $DERIVED_DATA/Build/Products/Release/Tinycast.app"
+echo "→ $DERIVED_DATA/Build/Products/Release/$FORK_NAME.app"
 """
 
 [tasks.run]

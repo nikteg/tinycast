@@ -71,6 +71,11 @@
 	<string>Tinycast reads today's and tomorrow's events so you can join a meeting from the palette.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Tinycast uses Bluetooth access only when you run the Toggle Bluetooth action.</string>
+	<!-- Stamped by `mise run build:release`; the fork's updater compares them with GitHub. -->
+	<key>TinycastSourceCommit</key>
+	<string>$(TINYCAST_SOURCE_COMMIT)</string>
+	<key>TinycastSourcePath</key>
+	<string>$(TINYCAST_SOURCE_PATH)</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Tinycast</string>
 </dict>
