@@ -560,6 +560,7 @@ run updates-test           Tinycast/Features/Updates/Model/*.swift \
                            Tinycast/Features/Updates/Service/BundleSignature.swift
 run support-test           Tinycast/Features/Support/Model/*.swift
 run pomodoro-test          Tinycast/Features/Pomodoro/Model/*.swift
+run typing-practice-test   Tinycast/Features/TypingPractice/Model/*.swift
 run ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Features/AI/Settings/AISettingsStore.swift

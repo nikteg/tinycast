@@ -509,6 +509,34 @@ enum Theme {
         /// The command output window's page: a flat surface the log sits directly on.
         static let terminalSurface = adaptive(
             dark: .srgbInk(0.07, alpha: 1), light: .srgbInk(0.99, alpha: 1))
+        /// Typing Practice's caret, the one moving mark on an otherwise still page.
+        static let typingCaret = Color.accentColor
+        /// A letter typed past its word's end: wrong, but quieter than a wrong letter.
+        static let typingExtra = Color.red.opacity(0.55)
+        /// A copied score card's page: an image has no desktop behind it to blur.
+        static let scoreCardSurface = adaptive(
+            dark: .srgbInk(0.09, alpha: 1), light: .srgbInk(0.98, alpha: 1))
+    }
+
+    enum Typing {
+        /// The words under test, monospaced so the caret and the wrapping are column arithmetic.
+        static let textSize: CGFloat = 24
+        /// The headline WPM and accuracy on the results.
+        static let heroSize: CGFloat = 52
+        /// Monkeytype's window onto the text: the caret's line, and one either side.
+        static let visibleLines = 3
+        static let lineSpacing: CGFloat = 10
+        static let caretWidth: CGFloat = 2
+        /// The caret slides between letters, fast enough never to trail a quick typist.
+        static let caretGlide: TimeInterval = 0.08
+        /// Half a blink, while the caret waits for the first key.
+        static let caretBlink: TimeInterval = 0.5
+        static let chartHeight: CGFloat = 120
+        static let chartLine: CGFloat = 2
+        static let chartErrorDot: CGFloat = 5
+        static let scoreCardWidth: CGFloat = 620
+        /// Rendered at twice the points, so a pasted card stays sharp on a Retina display.
+        static let scoreCardScale: CGFloat = 2
     }
 }
 

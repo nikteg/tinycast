@@ -169,14 +169,19 @@ the settings-search check, so run it locally before you open one.
 
 ## Generated data
 
-Three Swift files are emitted by scripts and must never be hand-edited. Each downloads its source, so
-run them online, then commit the result:
+Three Swift files and two JSON resources are emitted by scripts and must never be hand-edited. Each
+downloads its source, so run them online, then commit the result:
 
 ```sh
 node Scripts/gen-emoji.js            # -> Tinycast/Features/Emoji/Model/EmojiData.generated.swift
 node Scripts/gen-currencies.js       # -> Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
 node Scripts/gen-countries.js        # -> Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift
+node Scripts/gen-typing-data.js      # -> Tinycast/Features/TypingPractice/Resources/Typing*.generated.json
 ```
+
+`gen-typing-data.js` reads Monkeytype's English word list and quotes at a pinned commit; see
+[typing-practice.md](features/typing-practice.md). Node's `fetch` ignores an HTTP proxy, so behind one,
+download the two files first and pass their paths.
 
 `gen-countries.js` joins IANA's `zone.tab` with CLDR's `en` territory names on the ISO 3166 code. Re-run
 it when IANA adds or moves a country's zone; see [calculator.md](features/calculator.md#time-zones).

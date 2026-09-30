@@ -430,6 +430,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             case "w":
                 self.core.paletteCoordinator.hidePalette()
                 return true
+            // The hidden field would take ⌘C as its own, empty, copy.
+            case "c" where self.core.palette.mode == .typingPractice:
+                return self.core.typingPracticeCoordinator.copyScoreCard()
             default:
                 return false
             }

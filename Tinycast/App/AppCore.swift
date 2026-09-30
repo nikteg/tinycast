@@ -55,6 +55,7 @@ final class AppCore {
     let palette = PaletteState()
     let fileSearch = FileSearchSession()
     let dictionary = DictionarySession()
+    let typingPractice = TypingPracticeSession(store: TypingHistoryStore())
     let menuSearch = MenuSearchSession()
     let windowSwitch = WindowSwitchSession()
     let activationPolicy = ActivationPolicy()
@@ -197,6 +198,8 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var cameraCoordinator = CameraCoordinator(core: self)
     @ObservationIgnored private(set) lazy var dictionaryCoordinator = DictionaryCoordinator(
         paletteCoordinator: paletteCoordinator)
+    @ObservationIgnored private(set) lazy var typingPracticeCoordinator = TypingPracticeCoordinator(
+        session: typingPractice, paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var updateCoordinator = UpdateCoordinator(
         store: updateChecker, core: self)
     @ObservationIgnored private(set) lazy var forkUpdateCoordinator = ForkUpdateCoordinator(core: self)

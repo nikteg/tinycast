@@ -103,6 +103,9 @@ struct RootPaletteView: View {
                 vm: vm, openActions: openActions, metrics: metrics)
         case .dictionary:
             return DictionaryScreen(session: dictionary, core: core, vm: vm)
+        case .typingPractice:
+            return TypingPracticeScreen(
+                session: core.typingPractice, coordinator: core.typingPracticeCoordinator)
         case .calculatorHistory:
             return CalculatorHistoryScreen(
                 history: calcHistory, currencyRates: currencyRates, core: core, vm: vm,

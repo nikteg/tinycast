@@ -50,6 +50,9 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
 
 - **Pomodoro.** A work/break timer after Mater, with its sounds, a menu-bar countdown and a
   notification at each change. See [docs/features/pomodoro.md](docs/features/pomodoro.md).
+- **Typing Practice.** Raycast's Monkeytype test in the palette: time and quote tests, a results
+  chart, personal bests and a copyable score card. See
+  [docs/features/typing-practice.md](docs/features/typing-practice.md).
 - **About** shows the commit a build came from beside its version, and links to this fork's
   repository, issues and commits instead of upstream's website and socials.
 - **No support asks.** The About card, the menu-bar and palette items, the launcher command and the

@@ -158,3 +158,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Typing Practice words and quotes — `Tinycast/Features/TypingPractice/Resources/*.generated.json`
+
+Monkeytype's English word list (`frontend/static/languages/english.json`) and English quotes
+(`frontend/static/quotes/english.json`), from <https://github.com/monkeytypegame/monkeytype> at commit
+`4bd46c6ca1c2b02ba0203b83b6f0b32a2a5a53ec`, reduced by `Scripts/gen-typing-data.js` to the fields
+Tinycast reads and with typographic quotes and dashes made typeable. Monkeytype is Copyright (C)
+Miodec and its contributors, licensed under the GNU General Public License v3.0
+(<https://www.gnu.org/licenses/gpl-3.0.html>). Each quote remains its author's; the source of every
+quote travels with it and is shown beside the result.

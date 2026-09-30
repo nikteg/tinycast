@@ -30,6 +30,7 @@ open with an `## Invariants` section; read it before changing anything in that a
 [calculator](features/calculator.md) ·
 [calendar](features/calendar.md) ·
 [pomodoro](features/pomodoro.md) ·
+[typing practice](features/typing-practice.md) ·
 [camera](features/camera.md) ·
 [emoji](features/emoji.md) ·
 [dictionary](features/dictionary.md) ·
