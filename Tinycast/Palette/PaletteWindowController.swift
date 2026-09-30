@@ -182,7 +182,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         guard !core.extensions.isAuthorizing else { return }
         popToRootTimer?.invalidate()
         let timeout = core.settings.popToRootTimeout
-        guard timeout != .immediately else {
+        guard timeout != .immediately, core.palette.mode.outlivesClose else {
             popToRoot()
             return
         }

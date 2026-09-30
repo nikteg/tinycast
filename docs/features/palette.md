@@ -62,7 +62,9 @@ SwiftUI search field re-focuses. `prepare` is one of four motions over the scree
 
 Hiding schedules Pop to Root Search, and `PaletteWindowController.popToRoot` is its only path: the
 palette returns to the launcher *and* chat starts a new conversation, at once or after
-`popToRootTimeout`, unless a re-summon inside that window consumes the pending reset first. An
+`popToRootTimeout`, unless a re-summon inside that window consumes the pending reset first.
+Clipboard history skips the delay (`PaletteMode.outlivesClose`): it is a one-shot pick, so the
+main hotkey never lands back in it. An
 unfinished chat is a thing being done, exactly like a typed query, so the screen and the conversation
 are reset together rather than the screen alone. **The launcher's own text is the one thing a pop to
 root keeps**: `PaletteState.popToLauncher` restores whatever the launcher's field last held — on screen,

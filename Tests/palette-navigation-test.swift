@@ -144,6 +144,10 @@ struct PaletteNavigationTests {
         cleared.popToLauncher()
         expect(cleared.query.isEmpty, "a launcher cleared before the close reopens cleared")
 
+        expect(
+            !PaletteMode.clipboard.outlivesClose && PaletteMode.launcher.outlivesClose,
+            "closing clipboard history pops to root at once, so the hotkey never reopens it")
+
         let pasted = searchingLauncher()
         pasted.query = "\nfirst pasted row,\r\nsecond pasted row\u{2028}third\n"
         expect(

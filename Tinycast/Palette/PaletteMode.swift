@@ -66,6 +66,8 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .extensionCommand: return "Search…"
         }
     }
+    /// Clipboard history is a one-shot pick, so a close pops to root at once, never after the delay.
+    var outlivesClose: Bool { self != .clipboard }
 }
 
 /// The app a paste lands in, resolved once per show so nothing re-reads it per render.
