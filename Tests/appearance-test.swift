@@ -86,10 +86,21 @@ struct AppearanceTests {
         check("light scrim is white", components(c.panelScrim, .aqua)[0] == 255)
         check("dark scrim is black", components(c.panelScrim, .darkAqua)[0] == 0)
 
+        print("# Dark Gray lifts the surfaces and keeps Dark's ink")
+        let darkScrim = components(c.panelScrim, .darkAqua)
+        let darkSelection = components(c.selection, .darkAqua)
+        Theme.Colors.setDarkGray(true)
+        check("dark gray scrim is gray", components(c.panelScrim, .darkAqua)[0] > darkScrim[0])
+        check("dark gray keeps the ink", components(c.selection, .darkAqua) == darkSelection)
+        check("dark gray leaves light alone", components(c.panelScrim, .aqua)[0] == 255)
+        Theme.Colors.setDarkGray(false)
+        check("dark returns once cleared", components(c.panelScrim, .darkAqua) == darkScrim)
+
         print("# .system hands the choice back to AppKit")
         check("system is nil", AppAppearance.system.nsAppearance == nil)
         check("light is aqua", AppAppearance.light.nsAppearance?.isDark == false)
         check("dark is darkAqua", AppAppearance.dark.nsAppearance?.isDark == true)
+        check("dark gray is darkAqua", AppAppearance.darkGray.nsAppearance?.isDark == true)
         check("an unknown stored value is rejected", AppAppearance(rawValue: "sepia") == nil)
 
         print("\n\(passes) passed, \(failures) failed")

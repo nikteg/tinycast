@@ -35,7 +35,7 @@ Five load-bearing ideas, in priority order:
 
 These are the things that quietly break the look if changed. Preserve them unless the task is explicitly to change them.
 
-- **Dark is the baseline and its values are frozen.** Every `Theme.Colors` token resolves per appearance, and its **dark branch is the literal the forced-dark build shipped** — restated, never recomputed. Retune a light branch freely; touch a dark one only when the task is to change Dark. `AppCore.applyAppearance()` is the only place an appearance is assigned, from `AppSettings.appearance`; `.system` assigns `nil` so AppKit follows macOS.
+- **Dark is the baseline and its values are frozen.** Every `Theme.Colors` token resolves per appearance, and its **dark branch is the literal the forced-dark build shipped** — restated, never recomputed. Retune a light branch freely; touch a dark one only when the task is to change Dark. `AppCore.applyAppearance()` is the only place an appearance is assigned, from `AppSettings.appearance`; `.system` assigns `nil` so AppKit follows macOS. **Dark Gray** is Dark on `darkAqua` with lighter surfaces: `adaptive(dark:darkGray:light:)` gives a surface token (`panelScrim`, `roomCardFill`, `terminalSurface`) a third branch, picked by `Theme.Colors.setDarkGray`, and every ramp token keeps Dark's ink.
 - **New colors go through `Theme.Colors.ramp(dark:light:)`** (an alpha that inverts) or `adaptive(dark:light:)` (two explicit `NSColor`s, for anything that isn't a plain inversion — `panelScrim`, `layoutPreviewGround`). Never a bare `Color.white.opacity(…)` in a view: it disappears in Light.
 - **No grays, no opaque fills on the surface.** Reach for `Theme.Colors.*` instead of `.gray`, `NSColor.windowBackground`, etc.
 - **Three things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. `ExtensionTintColors` and a tinted `IconCache` tile keep white ink, because a saturated tile carries its own contrast. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
@@ -216,6 +216,7 @@ shipped. Light is the same stop with the ink inverted, and is the only column op
 
 `panelScrim` is the ramp's inverse — it darkens the dark surface and lightens the light one — so it
 is an `adaptive` pair, not a `ramp`.
+Dark Gray swaps it for a gray scrim, `srgbInk(0.18)` at **0.50**, so the panel reads lighter.
 `brand`, `primaryAction`, `destructive`, `success` and `dropGuideArmed` are fixed hues and adapt on
 their own.
 
