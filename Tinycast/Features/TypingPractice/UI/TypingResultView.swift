@@ -24,7 +24,7 @@ struct TypingResultView: View {
             Spacer(minLength: 0)
             HStack(spacing: metrics.spacing.xxl) {
                 hint("⇥", "next test")
-                hint("⇧⇥", "repeat")
+                hint("⌘R", "repeat")
                 hint("⌘C", "copy score card")
             }
             .frame(maxWidth: .infinity)

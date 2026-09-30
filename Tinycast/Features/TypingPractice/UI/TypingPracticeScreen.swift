@@ -26,6 +26,13 @@ struct TypingPracticeScreen: PaletteScreen {
 
     func secondary(at selection: Int) -> Bool { false }
 
+    /// ⌘R restarts the test on screen, the same words from the top, as ⇧⇥ does.
+    func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool {
+        guard shortcut == .restart else { return false }
+        session.repeatTest()
+        return true
+    }
+
     /// ⇥ is a new test at any point; ⇧⇥ the same words again.
     func tab(at selection: Int, backwards: Bool) -> Bool {
         if backwards {
@@ -41,7 +48,7 @@ struct TypingPracticeScreen: PaletteScreen {
             PopoverMenuItem(title: "Next Test", systemImage: "arrow.clockwise", shortcut: "⇥") {
                 session.newTest()
             },
-            PopoverMenuItem(title: "Repeat Test", systemImage: "repeat", shortcut: "⇧⇥") {
+            PopoverMenuItem(title: "Repeat Test", systemImage: "repeat", shortcut: "⌘R") {
                 session.repeatTest()
             }
         ]

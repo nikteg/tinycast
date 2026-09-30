@@ -18,7 +18,9 @@ image.
   the next key an edit mid-word. A key the test refuses is taken back out by resetting the text.
 - **The screen owns the keyboard.** `hidesSearchField` is true, and the view reports its field through
   `noteEditingField`, so a bare backspace edits the word instead of leaving the screen. ⇥ and ⇧⇥ are
-  claimed through `tab(at:backwards:)`; ⌘C is caught in `PaletteWindowController.onCommandShortcut`,
+  claimed through `tab(at:backwards:)` — though AppKit spells ⇧⇥ as backtab (`\u{19}`), which the
+  palette's ⇥ handler never sees, so the field answers that one itself — and ⌘R through
+  `perform(.restart)`; ⌘C is caught in `PaletteWindowController.onCommandShortcut`,
   since the field editor would otherwise take it as an empty copy.
 - **Monkeytype's rules, not a looser version of them.** The first key starts the clock. Space on an
   empty word does nothing, so a double space never skips a word. Backspace can return to the previous
@@ -60,7 +62,7 @@ shows with the live WPM.
 | Key | Does |
 | --- | --- |
 | ⇥ | a new test, at any point |
-| ⇧⇥ | the same words or quote again |
+| ⇧⇥ or ⌘R | the same words or quote again, from the top |
 | ↵ | a new test, once the last one has ended; mid-test it does nothing |
 | ⌘C | copy the score card, on the results |
 | esc | leave, as on any screen |

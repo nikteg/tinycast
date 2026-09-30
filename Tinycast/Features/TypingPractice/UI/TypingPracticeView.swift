@@ -41,6 +41,8 @@ struct TypingPracticeView: View {
         }
     }
 
+    private static let backtab = KeyEquivalent("\u{19}")
+
     /// Kept for its field editor alone: IME, key repeat and ⌥⌫ all arrive as edits to its text.
     private var inputField: some View {
         TextField("", text: Binding(get: { session.fieldText }, set: { session.edit($0) }))
@@ -49,6 +51,11 @@ struct TypingPracticeView: View {
             .focused($fieldFocused)
             // A caret moved inside the field would turn the next key into an edit mid-word.
             .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { _ in .handled }
+            // AppKit spells ⇧⇥ as backtab, which the palette's own ⇥ handler never matches.
+            .onKeyPress(keys: [Self.backtab], phases: .down) { _ in
+                session.repeatTest()
+                return .handled
+            }
             .frame(width: 1, height: 1)
             .opacity(0)
             .allowsHitTesting(false)
@@ -108,7 +115,7 @@ struct TypingPracticeView: View {
     private var hints: some View {
         HStack(spacing: metrics.spacing.xxl) {
             hint("⇥", "next test")
-            hint("⇧⇥", "repeat")
+            hint("⌘R", "repeat")
             hint("esc", "close")
         }
         .frame(maxWidth: .infinity)
