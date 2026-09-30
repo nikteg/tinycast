@@ -1,5 +1,6 @@
 import QuartzCore
 import SwiftUI
+import Synchronization
 
 /// Central design tokens; every dark colour is the literal the forced-dark build shipped.
 enum Theme {
@@ -402,9 +403,21 @@ enum Theme {
     }
 
     enum Colors {
+        /// Dark Gray is still AppKit's `darkAqua`, so the appearance cannot carry which dark it is.
+        private nonisolated static let darkGray = Mutex(false)
+
+        static func setDarkGray(_ isDarkGray: Bool) {
+            darkGray.withLock { $0 = isDarkGray }
+        }
+
         /// Resolves against the window's `effectiveAppearance`, so a token repaints on its own.
-        static func adaptive(dark: NSColor, light: NSColor) -> Color {
-            Color(nsColor: NSColor(name: nil) { $0.isDark ? dark : light })
+        static func adaptive(dark: NSColor, darkGray: NSColor? = nil, light: NSColor) -> Color {
+            let gray = darkGray ?? dark
+            return Color(
+                nsColor: NSColor(name: nil) { appearance in
+                    guard appearance.isDark else { return light }
+                    return Self.darkGray.withLock { $0 } ? gray : dark
+                })
         }
 
         /// The alpha ramp, inverted: white ink over the dark surface, black ink over the light one.
@@ -413,7 +426,9 @@ enum Theme {
         }
 
         /// The ramp's inverse: the scrim darkens the dark surface and lightens the light one.
-        static let panelScrim = adaptive(dark: .srgbInk(0, alpha: 0.40), light: .srgbInk(1, alpha: 0.55))
+        static let panelScrim = adaptive(
+            dark: .srgbInk(0, alpha: 0.40), darkGray: .srgbInk(0.18, alpha: 0.50),
+            light: .srgbInk(1, alpha: 0.55))
         /// Modal separation inside Tinycast: the launcher recedes while its dialog is in front.
         static let dialogDimming = adaptive(
             dark: .srgbInk(0, alpha: 0.34), light: .srgbInk(0, alpha: 0.34))
@@ -477,7 +492,8 @@ enum Theme {
             dark: .srgbInk(0, alpha: 0.18), light: .srgbInk(0, alpha: 0.18))
         /// A room card is a solid window in both appearances, so the desk never shows through.
         static let roomCardFill = adaptive(
-            dark: .srgbInk(0.16, alpha: 0.94), light: .srgbInk(0.98, alpha: 0.94))
+            dark: .srgbInk(0.16, alpha: 0.94), darkGray: .srgbInk(0.21, alpha: 0.94),
+            light: .srgbInk(0.98, alpha: 0.94))
         static let roomCardStroke = Color.accentColor
         static let roomCardShadow = adaptive(
             dark: .srgbInk(0, alpha: 0.25), light: .srgbInk(0, alpha: 0.25))
@@ -508,14 +524,16 @@ enum Theme {
         static let progress = Color.blue
         /// The command output window's page: a flat surface the log sits directly on.
         static let terminalSurface = adaptive(
-            dark: .srgbInk(0.07, alpha: 1), light: .srgbInk(0.99, alpha: 1))
+            dark: .srgbInk(0.07, alpha: 1), darkGray: .srgbInk(0.13, alpha: 1),
+            light: .srgbInk(0.99, alpha: 1))
         /// Typing Practice's caret, the one moving mark on an otherwise still page.
         static let typingCaret = Color.accentColor
         /// A letter typed past its word's end: wrong, but quieter than a wrong letter.
         static let typingExtra = Color.red.opacity(0.55)
         /// A copied score card's page: an image has no desktop behind it to blur.
         static let scoreCardSurface = adaptive(
-            dark: .srgbInk(0.09, alpha: 1), light: .srgbInk(0.98, alpha: 1))
+            dark: .srgbInk(0.09, alpha: 1), darkGray: .srgbInk(0.15, alpha: 1),
+            light: .srgbInk(0.98, alpha: 1))
     }
 
     enum Typing {

@@ -701,6 +701,7 @@ final class AppCore {
 
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
     private func applyAppearance() {
+        Theme.Colors.setDarkGray(settings.appearance == .darkGray)
         NSApp.appearance = settings.appearance.nsAppearance
     }
 
