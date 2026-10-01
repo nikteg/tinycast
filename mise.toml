@@ -111,8 +111,10 @@ echo "→ $DERIVED_DATA/Build/Products/Debug/Tinycast Dev.app"
 description = "Release build (Tinycast Fork.app) without installing it"
 depends = ["signing:check"]
 run = """
+# Incremental, still optimized: whole-module mode re-optimizes every file on each install.
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
   -derivedDataPath "$DERIVED_DATA" CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+  SWIFT_COMPILATION_MODE=incremental \
   PRODUCT_NAME="$FORK_NAME" PRODUCT_BUNDLE_IDENTIFIER="$FORK_BUNDLE_ID" \
   TINYCAST_SOURCE_COMMIT="$(git rev-parse HEAD)" TINYCAST_SOURCE_PATH="$PWD" build 2>&1 \
   | grep -E 'error:|warning:|BUILD (SUCCEEDED|FAILED)' | sort -u

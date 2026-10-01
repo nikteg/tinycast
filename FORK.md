@@ -13,7 +13,7 @@ but lives on its own. Everything runs through [mise](https://mise.jdx.dev) tasks
 | `mise run bootstrap` | a fresh clone to a running app: `setup`, then `install` |
 | `mise run setup` | check macOS and Xcode, install xcodegen/swiftlint/node, add `upstream`, create the signing identity |
 | `mise run install` | Release build installed as `/Applications/Tinycast Fork.app`, then launched |
-| `mise run build` / `build:release` | Debug or Release build |
+| `mise run build` / `build:release` | Debug or Release build; Release compiles incrementally |
 | `mise run run` | build and relaunch `Tinycast Dev.app` |
 | `mise run check` | tests, lint and build |
 | `mise run upstream:status` | what upstream has that `main` lacks, and the reverse |
