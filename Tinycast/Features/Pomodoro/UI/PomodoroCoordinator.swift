@@ -62,7 +62,6 @@ final class PomodoroCoordinator {
         guard var timer = store.timer, timer.isRunning else { return }
         timer.pause(now: Date())
         store.update(timer)
-        play(.toggleOff)
         core.showMessage("Pomodoro paused")
         halted()
     }
@@ -71,7 +70,6 @@ final class PomodoroCoordinator {
         guard var timer = store.timer, !timer.isRunning else { return }
         timer.resume(now: Date())
         store.update(timer)
-        play(.toggleOn)
         let left = PomodoroAnnouncement.minutes(timer.minutesLeft(now: Date()))
         core.showMessage("Pomodoro resumed · \(left) left")
         began()
@@ -89,7 +87,6 @@ final class PomodoroCoordinator {
     func stop() {
         guard store.timer != nil else { return }
         store.update(nil)
-        play(.toggleOff)
         core.showMessage("Pomodoro stopped")
         halted()
         applyPresence()

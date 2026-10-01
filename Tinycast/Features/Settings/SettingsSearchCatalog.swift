@@ -553,7 +553,7 @@ enum SettingsSearchCatalog {
         .init(.pomodoroTimer, "Work Length", keywords: ["duration", "minutes", "focus", "25"]),
         .init(.pomodoroTimer, "Break Length", keywords: ["duration", "minutes", "rest", "pause", "5"]),
         .init(.pomodoroAlerts, "Show Notifications", keywords: ["alert", "banner", "remind"]),
-        .init(.pomodoroAlerts, "Play Sounds", keywords: ["ding", "click", "wind", "audio", "mute"]),
+        .init(.pomodoroAlerts, "Play Sounds", keywords: ["ding", "wind", "audio", "mute"]),
         .init(
             .pomodoroMenuBar, "Countdown in Menu Bar",
             keywords: ["status item", "menubar", "minutes left"]),

@@ -23,7 +23,7 @@ each change saying how long the next phase runs and until when.
 | `Model/PomodoroTimer.swift` | Phase, running/paused clock, pause/resume/skip/advance |
 | `Model/PomodoroAnnouncement.swift` | What a phase change says |
 | `Service/PomodoroStore.swift` | The cycle in progress, persisted to `pomodoro.json` |
-| `Service/PomodoroSoundRunner.swift` | Mater's wind-up, toggles and ding |
+| `Service/PomodoroSoundRunner.swift` | Mater's wind-up and ding |
 | `Service/PomodoroNotificationRunner.swift` | The one pending phase-change notification |
 | `UI/PomodoroCoordinator.swift` | Commands, the minute pump, sounds, notifications, presence |
 | `UI/PomodoroMenuBarItem.swift` | The menu-bar label and menu |
@@ -31,10 +31,9 @@ each change saying how long the next phase runs and until when.
 
 ## Sounds
 
-Two generations of Mater. The wind-up as a phase starts is v2.0.3's — its Swift rewrite generates
-one from a tick instead — and plays two seconds after the ding when a phase rolls over on its own.
-The ding as a phase ends, and `toggle-on` on resume and `toggle-off` on pause and stop, are the
-current Mater's.
+Both are Mater v2.0.3's: the ding as a phase ends, and the wind-up as one starts — two seconds
+after the ding when a phase rolls over on its own. Its Swift rewrite generates the wind-up from a
+tick and replaced the ding, and neither replacement is used. Pause, resume and stop are silent.
 
 ## Commands and the menu bar
 
