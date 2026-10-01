@@ -38,6 +38,7 @@ targets:
         excludes:
           - Features/Clipboard/Service/ClipboardTextExtractor.swift
           - Features/Clipboard/Service/ClipboardTextHelper.swift
+          - Features/PowerMode/Helper/PowerModeHelper.swift
       # The MIT mark's licence asks the notice to travel with the binary, not just the repo.
       - path: NOTICE.md
         buildPhase: resources
@@ -49,6 +50,37 @@ targets:
         copy:
           destination: wrapper
           subpath: Contents/Helpers
+      - target: PowerModeHelper
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
+    # SMAppService finds a daemon's job by this plist; its label carries the bundle id per channel.
+    postBuildScripts:
+      - name: Write the power-mode helper's launchd job
+        basedOnDependencyAnalysis: false
+        showEnvVars: false
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/$(PRODUCT_BUNDLE_IDENTIFIER).power-mode.plist
+        script: |
+          set -euo pipefail
+          label="${PRODUCT_BUNDLE_IDENTIFIER}.power-mode"
+          dir="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Library/LaunchDaemons"
+          mkdir -p "$dir"
+          rm -f "$dir"/*.power-mode.plist
+          plist="$dir/$label.plist"
+          /usr/libexec/PlistBuddy -c "Add :Label string $label" \
+            -c "Add :BundleProgram string Contents/Helpers/PowerModeHelper" \
+            -c "Add :ProgramArguments array" \
+            -c "Add :ProgramArguments:0 string PowerModeHelper" \
+            -c "Add :ProgramArguments:1 string ${PRODUCT_BUNDLE_IDENTIFIER}" \
+            -c "Add :MachServices dict" \
+            -c "Add :MachServices:$label bool true" \
+            -c "Add :AssociatedBundleIdentifiers array" \
+            -c "Add :AssociatedBundleIdentifiers:0 string ${PRODUCT_BUNDLE_IDENTIFIER}" \
+            "$plist" >/dev/null
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tinycast.app
@@ -66,6 +98,21 @@ targets:
         Debug:
           PRODUCT_NAME: Tinycast Dev
           PRODUCT_BUNDLE_IDENTIFIER: com.tinycast.app.dev
+
+  PowerModeHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - Tinycast/Features/PowerMode/Helper/PowerModeHelper.swift
+      - Tinycast/Features/PowerMode/Model/PowerMode.swift
+      - Tinycast/Features/PowerMode/Model/PowerModeHelperMessage.swift
+      - Tinycast/Platform/ProcessExit.swift
+    settings:
+      base:
+        # Pinned for the same reason as ClipboardTextHelper's: release.yml renames every target.
+        EXECUTABLE_NAME: PowerModeHelper
+        PRODUCT_MODULE_NAME: PowerModeHelper
+        SKIP_INSTALL: YES
 
   ClipboardTextHelper:
     type: tool

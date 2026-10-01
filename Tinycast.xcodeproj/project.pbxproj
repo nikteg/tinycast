@@ -49,6 +49,7 @@
 		0CD06036347A6D96B1F7947F /* AppleShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = A379CB384B76FF70AC72E235 /* AppleShortcut.swift */; };
 		0CDD3AE7DF97899340E56061 /* FileSearchQuickLook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A83359DA89BD4E1E6FC3087 /* FileSearchQuickLook.swift */; };
 		0D509E0E71CBCBB72EF0BDFE /* CustomWindowSizeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE31A7F41EDA33E7E574F62D /* CustomWindowSizeStore.swift */; };
+		0D55B8076EC33CDB0924E8C4 /* PowerModeHelperMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D546D8FBB4131C6601A78B0C /* PowerModeHelperMessage.swift */; };
 		0D5FEFF7E49E116C1CBF417F /* CalcHoliday.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1C1BADCCD1FEBA28FE14D0 /* CalcHoliday.swift */; };
 		0D8A65A0A7A2188F56D576FF /* Quarantine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4984C964DC144E213DF4F63 /* Quarantine.swift */; };
 		0DD808F80666846F4E74BAD8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23591B301A183579098AA019 /* OnboardingView.swift */; };
@@ -140,6 +141,7 @@
 		2C9B845C83930B9EEA188C0C /* WindowLayoutInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A29ED24604BE67E562B07D /* WindowLayoutInspector.swift */; };
 		2D40FB3C6B78FE746AB0F7EB /* WindowSwitchOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867B0475618A01A765AC0DC5 /* WindowSwitchOrder.swift */; };
 		2D51D92BE8EAB5440F4C8517 /* ExtensionPaletteModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0FB3A9CA762A7A8DB99BA6 /* ExtensionPaletteModifiers.swift */; };
+		2D5EDDC3FC088D51C0948F9E /* PowerMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A46530FF2A5B0BBCED4ADC40 /* PowerMode.swift */; };
 		2E05FC5D5A0C2BACE7DB8CDD /* LauncherSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE5D670CFC618B2EAFA0868 /* LauncherSuggestions.swift */; };
 		2E0957985928EC32511A5969 /* MCPServerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0814A6707E67A3BD3772E119 /* MCPServerEditor.swift */; };
 		2E31A4EA73B19928A05519F8 /* SettingsFileBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16A7349B3D5EF92EFB35E58 /* SettingsFileBinding.swift */; };
@@ -408,6 +410,7 @@
 		7B462545DB241D5E3DCABC0A /* PaletteResultRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D5E873215E414DA0C1A785 /* PaletteResultRow.swift */; };
 		7BDB7CF7F1352015F6AC96C3 /* SnippetsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375734577C888260A8023181 /* SnippetsStore.swift */; };
 		7C2AA1D827EC87533021BD74 /* SpaceSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C021D578082B4FE98D27CAC /* SpaceSwitcher.swift */; };
+		7C836F728A8B680B7376482E /* PowerModeHelperMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D546D8FBB4131C6601A78B0C /* PowerModeHelperMessage.swift */; };
 		7C9A5A09B871FC42F3195AC8 /* AIScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27021D72339800AA6DA3D3FF /* AIScreen.swift */; };
 		7CC503824FDF49F788C85BB3 /* SettingsBackupCoverage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5FFE395B9164BDC77B3470 /* SettingsBackupCoverage.swift */; };
 		7D027F24478DAB019076CA10 /* EventDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EE496AA4863086BB49CBF2E /* EventDraft.swift */; };
@@ -485,6 +488,7 @@
 		9553DDEBD6FCC205069ED996 /* MenuPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF96A1566757811AD434C0F9 /* MenuPanel.swift */; };
 		9608AFDEDC3B330E64F53437 /* ExtensionStoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410684C9DEB3754962C20C9C /* ExtensionStoreClient.swift */; };
 		9690D6E5275F3DC92C3B11D2 /* SettingsFileKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAD3CBED74EA031B58266EC /* SettingsFileKey.swift */; };
+		96A8AFD6E0D05A40AA99237E /* PowerModeHelper in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 565890E69EEA4BE7086D7A74 /* PowerModeHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		96BC636877D935C5EB20BF7F /* SnippetsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E06AA30E7BA44BC211B667F /* SnippetsScreen.swift */; };
 		978FE09E53A632B1473DC5D3 /* MCPOAuthListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98310BAA8713A12DF56F19D7 /* MCPOAuthListener.swift */; };
 		97D71FF4C0D582828C6EC7F5 /* UpdateFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B475B5929CC0478EFAC7D8 /* UpdateFailure.swift */; };
@@ -641,6 +645,7 @@
 		C75868B7FBA96939089EDBA6 /* CustomWindowSizesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F81A385A824D02C1466F8BF8 /* CustomWindowSizesSection.swift */; };
 		C890F517AA487C4C6CD25298 /* MathNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E140AF0EE4548DDC4814D7 /* MathNode.swift */; };
 		C8D4DDD0DDA678429552E062 /* MCPOAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222F9EE432F608B5C907E7C2 /* MCPOAuth.swift */; };
+		C96AA9BB299DC4CB90F074F8 /* PowerModeHelperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF0ADD7BD6780954A15450EA /* PowerModeHelperClient.swift */; };
 		C9A7290682E9D0881713C009 /* ExtensionGridGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85C82C66132C7723272E873 /* ExtensionGridGeometry.swift */; };
 		CA1BE30F0E4843354941A987 /* SettingsFileIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA16A82218236B882496E6DD /* SettingsFileIdentity.swift */; };
 		CA6BA9C381351D0B2CADFB9D /* IconCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CBCCE63360E4590CF5884A /* IconCache.swift */; };
@@ -709,6 +714,7 @@
 		DF45F095F4BE5E5BAF0A3DF8 /* ModifierTapMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 709C3F8952A500267E1D8242 /* ModifierTapMonitor.swift */; };
 		DFB25A4CDD35071B745F2EF9 /* DoubleTapModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F0F0DDA5FC1F6ED59E73E9 /* DoubleTapModifier.swift */; };
 		DFED3F4C7B67FED3DBD016E5 /* FallbackActionsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEDF156B61DD90C5ADA8FA /* FallbackActionsMenu.swift */; };
+		E0619FF952A98F32EE1A4662 /* ProcessExit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F11288E491662948CB33FEC /* ProcessExit.swift */; };
 		E06AA23D307A8FBA62C950BA /* MCPOAuthRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E96BEA3A5436619297675B /* MCPOAuthRequest.swift */; };
 		E078243555477EA5F02C9119 /* MenuSearchTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFF1EF5B5DA85F78C040BD1 /* MenuSearchTarget.swift */; };
 		E0C0746AD3C7E2FED3C50374 /* WindowActionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E7B96668721F12170CD72 /* WindowActionMemory.swift */; };
@@ -757,6 +763,7 @@
 		ECD777BD408E9DC2C93CFC1B /* CalcUnitExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639F73227BB0A4B9CD889D81 /* CalcUnitExpression.swift */; };
 		ED62826E3D7CEB357865F9EB /* CalcDimension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666E0A469BE1984BEF1A9A50 /* CalcDimension.swift */; };
 		ED751C8FC1EFC4E9C07AE98F /* FileSearchFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE21578FB7500CB744855654 /* FileSearchFilter.swift */; };
+		ED78A9D20F2A407CC5BFC823 /* PowerModeHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CB568B3B285333A641DD3B /* PowerModeHelper.swift */; };
 		EDD7861202ECC1B0FA3B278E /* FileSearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7420F642776452B469182D0 /* FileSearchResult.swift */; };
 		EE6A9E899566ACCB8258D901 /* WindowManagementSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0A6DDC1C30A6E2C6DF7E7D /* WindowManagementSettingsView.swift */; };
 		EE947C6E8C9877314BEE8357 /* ConfettiCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C439A6B2445689A1BEA29E9F /* ConfettiCoordinator.swift */; };
@@ -824,6 +831,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3CFE10BC14D82A71CDCB2AA6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ADDC0DAB183B80B8B278C7BA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AF8BA0800E80152BAC6EB48E;
+			remoteInfo = PowerModeHelper;
+		};
 		D8D2878E41110CAB71C371B6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ADDC0DAB183B80B8B278C7BA /* Project object */;
@@ -841,6 +855,7 @@
 			dstSubfolderSpec = 1;
 			files = (
 				0A6FDD413D8FEDDA413B69A6 /* ClipboardTextHelper in Embed Dependencies */,
+				96A8AFD6E0D05A40AA99237E /* PowerModeHelper in Embed Dependencies */,
 			);
 			name = "Embed Dependencies";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1135,6 +1150,7 @@
 		548C83C4086CD9FB8E85B222 /* ClipboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardScreen.swift; sourceTree = "<group>"; };
 		5515DEDA5C7485F4A9C218B5 /* NoteFormattingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteFormattingBar.swift; sourceTree = "<group>"; };
 		552EF9B38ABA9443D4FDE5E4 /* AIToolRounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIToolRounds.swift; sourceTree = "<group>"; };
+		565890E69EEA4BE7086D7A74 /* PowerModeHelper */ = {isa = PBXFileReference; includeInIndex = 0; path = PowerModeHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		56D6EE5144AEF889C95B3758 /* QuickActionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionCoordinator.swift; sourceTree = "<group>"; };
 		570CE37C7133E28F7495ED91 /* MarkdownCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownCodeView.swift; sourceTree = "<group>"; };
 		574593904D49C3B2C27AF1B9 /* ColorPickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerCoordinator.swift; sourceTree = "<group>"; };
@@ -1280,6 +1296,7 @@
 		83CD7B0E866AEF486F9EC5E9 /* QuicklinkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuicklinkCoordinator.swift; sourceTree = "<group>"; };
 		847C792F7F5F31259EB56ACC /* FileSearchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchScreen.swift; sourceTree = "<group>"; };
 		848E14DE51403235A82BC287 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
+		84CB568B3B285333A641DD3B /* PowerModeHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerModeHelper.swift; sourceTree = "<group>"; };
 		856F65245B10433A230194E6 /* QuicklinkListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuicklinkListView.swift; sourceTree = "<group>"; };
 		858E08BB313EC330C2D5E50C /* LauncherCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherCoordinator.swift; sourceTree = "<group>"; };
 		85B00A698366E83C7352BC1E /* HotKeyBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyBinding.swift; sourceTree = "<group>"; };
@@ -1469,6 +1486,7 @@
 		BE6972F177922B1EB8831735 /* OnboardingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCard.swift; sourceTree = "<group>"; };
 		BEBE95E04A3E8B4BCF973A04 /* MathBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathBox.swift; sourceTree = "<group>"; };
 		BEDDA8820165672AF8464E25 /* SettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsComponents.swift; sourceTree = "<group>"; };
+		BF0ADD7BD6780954A15450EA /* PowerModeHelperClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerModeHelperClient.swift; sourceTree = "<group>"; };
 		BF36BDC9ACE867DCC2CCF746 /* SystemPromptEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPromptEditor.swift; sourceTree = "<group>"; };
 		BF96A1566757811AD434C0F9 /* MenuPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPanel.swift; sourceTree = "<group>"; };
 		BFAC61A9583AF468EC95C0B6 /* RoomArrangement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomArrangement.swift; sourceTree = "<group>"; };
@@ -1550,6 +1568,7 @@
 		D43E5D47E198B86901D75515 /* ChatGPTSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTSubscription.swift; sourceTree = "<group>"; };
 		D43F1080FB443A1D0616790E /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
 		D4B1C3C35E233839254E9C20 /* DurationPhrase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationPhrase.swift; sourceTree = "<group>"; };
+		D546D8FBB4131C6601A78B0C /* PowerModeHelperMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerModeHelperMessage.swift; sourceTree = "<group>"; };
 		D5870C37FFC77A9B53CA5764 /* TextDiffEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextDiffEngine.swift; sourceTree = "<group>"; };
 		D65D1C9A117E443C6DA2BD9E /* WindowLayoutAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutAnchor.swift; sourceTree = "<group>"; };
 		D68722D56122F3EFDA707782 /* RoomsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsScreen.swift; sourceTree = "<group>"; };
@@ -1725,6 +1744,14 @@
 			path = Platform;
 			sourceTree = "<group>";
 		};
+		048A1DAB3DBC3A8659445207 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				84CB568B3B285333A641DD3B /* PowerModeHelper.swift */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
 		054F403BD478830AE32E6A77 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -1814,6 +1841,7 @@
 			isa = PBXGroup;
 			children = (
 				CEE5FA2E56073002C2DA6D6A /* ClipboardTextHelper */,
+				565890E69EEA4BE7086D7A74 /* PowerModeHelper */,
 				5392500F86E23C099D33561D /* Tinycast.app */,
 			);
 			name = Products;
@@ -1958,6 +1986,13 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		1F94A2D69201B5D852113DC9 /* .claude */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = .claude;
+			sourceTree = "<group>";
+		};
 		1FC9BDBE6549F7189CB995AB /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -2020,7 +2055,6 @@
 		23CFFC654FA805DA30283BE1 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				DDE1349A1C3D8118741BFAB6 /* .claude */,
 				6BA88020038D35DA9DE098EC /* pomodoro-ding.wav */,
 				DE1B2298EA4AB219E0E33F03 /* pomodoro-windup.wav */,
 			);
@@ -2202,6 +2236,7 @@
 		46673B502CF45249999C9696 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				BF0ADD7BD6780954A15450EA /* PowerModeHelperClient.swift */,
 				4A6E09671EE000FFE43E6FCA /* PowerModeRunner.swift */,
 			);
 			path = Service;
@@ -2600,6 +2635,8 @@
 		721814CA997261623DC1B9FE /* PowerMode */ = {
 			isa = PBXGroup;
 			children = (
+				1F94A2D69201B5D852113DC9 /* .claude */,
+				048A1DAB3DBC3A8659445207 /* Helper */,
 				D2E518C962FED4936DC6EA43 /* Model */,
 				46673B502CF45249999C9696 /* Service */,
 				2468859170246B0AC156B6A1 /* UI */,
@@ -3470,6 +3507,7 @@
 			isa = PBXGroup;
 			children = (
 				A46530FF2A5B0BBCED4ADC40 /* PowerMode.swift */,
+				D546D8FBB4131C6601A78B0C /* PowerModeHelperMessage.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -3573,13 +3611,6 @@
 				17EA0B9FFCBAB10941EC7702 /* VisibilityStore.swift */,
 			);
 			path = Service;
-			sourceTree = "<group>";
-		};
-		DDE1349A1C3D8118741BFAB6 /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
 			sourceTree = "<group>";
 		};
 		E03B6709C03D364770213872 /* Resources */ = {
@@ -3918,11 +3949,13 @@
 				6E13E657DC484EA7935E1C3A /* Sources */,
 				0E8F5C3C217EFF5576B2CB4F /* Resources */,
 				4AAF1BA4D980892A8FDF2D3E /* Embed Dependencies */,
+				AB3AF8DF99089469CFA2438F /* Write the power-mode helper's launchd job */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				47E8DAE6EA7BBB14E1B3C25D /* PBXTargetDependency */,
+				DBA769A2BD3A88C9F6CBE3FF /* PBXTargetDependency */,
 			);
 			name = Tinycast;
 			packageProductDependencies = (
@@ -3930,6 +3963,23 @@
 			productName = Tinycast;
 			productReference = 5392500F86E23C099D33561D /* Tinycast.app */;
 			productType = "com.apple.product-type.application";
+		};
+		AF8BA0800E80152BAC6EB48E /* PowerModeHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D99FD2EAA75E70956ED46A3F /* Build configuration list for PBXNativeTarget "PowerModeHelper" */;
+			buildPhases = (
+				2A96EF9E947D6455635EF6E9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PowerModeHelper;
+			packageProductDependencies = (
+			);
+			productName = PowerModeHelper;
+			productReference = 565890E69EEA4BE7086D7A74 /* PowerModeHelper */;
+			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -3945,6 +3995,10 @@
 						ProvisioningStyle = Manual;
 					};
 					51DBA6947AFD8275A0DF8DA0 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+					AF8BA0800E80152BAC6EB48E = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
 					};
@@ -3965,6 +4019,7 @@
 			projectRoot = "";
 			targets = (
 				51DBA6947AFD8275A0DF8DA0 /* Tinycast */,
+				AF8BA0800E80152BAC6EB48E /* PowerModeHelper */,
 				0832DCD58DEA01602328CCE7 /* ClipboardTextHelper */,
 			);
 		};
@@ -3988,7 +4043,42 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AB3AF8DF99089469CFA2438F /* Write the power-mode helper's launchd job */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Write the power-mode helper's launchd job";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/$(PRODUCT_BUNDLE_IDENTIFIER).power-mode.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nlabel=\"${PRODUCT_BUNDLE_IDENTIFIER}.power-mode\"\ndir=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Library/LaunchDaemons\"\nmkdir -p \"$dir\"\nrm -f \"$dir\"/*.power-mode.plist\nplist=\"$dir/$label.plist\"\n/usr/libexec/PlistBuddy -c \"Add :Label string $label\" \\\n  -c \"Add :BundleProgram string Contents/Helpers/PowerModeHelper\" \\\n  -c \"Add :ProgramArguments array\" \\\n  -c \"Add :ProgramArguments:0 string PowerModeHelper\" \\\n  -c \"Add :ProgramArguments:1 string ${PRODUCT_BUNDLE_IDENTIFIER}\" \\\n  -c \"Add :MachServices dict\" \\\n  -c \"Add :MachServices:$label bool true\" \\\n  -c \"Add :AssociatedBundleIdentifiers array\" \\\n  -c \"Add :AssociatedBundleIdentifiers:0 string ${PRODUCT_BUNDLE_IDENTIFIER}\" \\\n  \"$plist\" >/dev/null\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		2A96EF9E947D6455635EF6E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2D5EDDC3FC088D51C0948F9E /* PowerMode.swift in Sources */,
+				ED78A9D20F2A407CC5BFC823 /* PowerModeHelper.swift in Sources */,
+				0D55B8076EC33CDB0924E8C4 /* PowerModeHelperMessage.swift in Sources */,
+				E0619FF952A98F32EE1A4662 /* ProcessExit.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		385BC383D52E5167B280638A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -4551,6 +4641,8 @@
 				C40E320E21A627472CD15188 /* PortsScreen.swift in Sources */,
 				EB619320435F1817E2B641DF /* PowerMode.swift in Sources */,
 				A0922BF13A7B77B8A07E1852 /* PowerModeCoordinator.swift in Sources */,
+				C96AA9BB299DC4CB90F074F8 /* PowerModeHelperClient.swift in Sources */,
+				7C836F728A8B680B7376482E /* PowerModeHelperMessage.swift in Sources */,
 				EBC9D936C66CA7F16F8A507D /* PowerModeRunner.swift in Sources */,
 				A12D1812719C13AB22DFA5F5 /* ProcessCoordinator.swift in Sources */,
 				5CB834F0059FC98C26E7A515 /* ProcessExit.swift in Sources */,
@@ -4816,6 +4908,11 @@
 			target = 0832DCD58DEA01602328CCE7 /* ClipboardTextHelper */;
 			targetProxy = D8D2878E41110CAB71C371B6 /* PBXContainerItemProxy */;
 		};
+		DBA769A2BD3A88C9F6CBE3FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AF8BA0800E80152BAC6EB48E /* PowerModeHelper */;
+			targetProxy = 3CFE10BC14D82A71CDCB2AA6 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -4921,6 +5018,22 @@
 			};
 			name = Debug;
 		};
+		70FF76E1C927A94F4337C670 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_NAME = PowerModeHelper;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.tinycast.PowerModeHelper;
+				PRODUCT_MODULE_NAME = PowerModeHelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		828D07C0809E0B5A914BF94E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4936,6 +5049,22 @@
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
+		};
+		838759B2679502B185EB3DDF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_NAME = PowerModeHelper;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.tinycast.PowerModeHelper;
+				PRODUCT_MODULE_NAME = PowerModeHelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
 		};
 		CC3CD44A1E55885C69F58A29 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -5046,6 +5175,15 @@
 			buildConfigurations = (
 				D8C6CAC15EBCF3A29913F5C8 /* Debug */,
 				828D07C0809E0B5A914BF94E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D99FD2EAA75E70956ED46A3F /* Build configuration list for PBXNativeTarget "PowerModeHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				838759B2679502B185EB3DDF /* Debug */,
+				70FF76E1C927A94F4337C670 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

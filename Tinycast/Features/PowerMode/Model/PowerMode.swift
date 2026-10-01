@@ -1,7 +1,7 @@
 import Foundation
 
 /// The Energy Mode picker in Settings › Battery, by `pmset`'s own numbers.
-enum PowerMode: Int, Sendable {
+enum PowerMode: Int, Codable, Sendable {
     case automatic = 0
     case low = 1
     case high = 2

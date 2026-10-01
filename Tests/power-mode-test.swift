@@ -18,6 +18,7 @@ struct PowerModeTests {
     static func main() {
         readsTheBatterySection()
         toggles()
+        namesTheHelper()
 
         print("\(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
@@ -47,5 +48,18 @@ struct PowerModeTests {
         expect(PowerMode.automatic.toggled == .low, "automatic to low")
         expect(PowerMode.low.toggled == .automatic, "low back to automatic")
         expect(PowerMode.high.toggled == .low, "high counts as not low")
+    }
+
+    static func namesTheHelper() {
+        expect(
+            PowerModeHelperMessage.label(forApp: "com.tinycast.app.dev")
+                == "com.tinycast.app.dev.power-mode", "each channel names its own job")
+        expect(
+            PowerModeHelperMessage.plistName(forApp: "com.tinycast.app")
+                == "com.tinycast.app.power-mode.plist", "the plist the build script writes")
+        let request = try? JSONDecoder().decode(
+            PowerModeHelperMessage.Request.self,
+            from: JSONEncoder().encode(PowerModeHelperMessage.Request(mode: .low)))
+        expect(request?.mode == .low, "a request round-trips")
     }
 }
