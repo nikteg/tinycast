@@ -19,6 +19,11 @@ enum PaletteMode: String, CaseIterable, Identifiable {
     case snippets
     case dictionary
     case typingPractice
+    case timers
+    case caffeinate
+    case colorHistory
+    case processes
+    case ports
     /// A Raycast extension command rendering into the palette.
     case extensionCommand
 
@@ -43,6 +48,11 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .snippets: return "curlybraces"
         case .dictionary: return "book.closed"
         case .typingPractice: return "keyboard"
+        case .timers: return "stopwatch"
+        case .caffeinate: return "cup.and.heat.waves"
+        case .colorHistory: return "paintpalette"
+        case .processes: return "xmark.octagon"
+        case .ports: return "network"
         case .extensionCommand: return "puzzlepiece.extension"
         }
     }
@@ -66,6 +76,11 @@ enum PaletteMode: String, CaseIterable, Identifiable {
         case .dictionary: return "Look up a word…"
         // Never drawn: the test owns the keyboard, so the field is hidden.
         case .typingPractice: return ""
+        case .timers: return "Type a length and a name, like 10m tea…"
+        case .caffeinate: return "Type how long to stay awake, like 45m…"
+        case .colorHistory: return "Search picked colors…"
+        case .processes: return "Search by name, PID or port…"
+        case .ports: return "Search by port, process or PID…"
         // Replaced by the command's own `searchBarPlaceholder` whenever it declares one.
         case .extensionCommand: return "Search…"
         }

@@ -53,6 +53,14 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
 - **Typing Practice.** Raycast's Monkeytype test in the palette: time and quote tests, a results
   chart, personal bests and a copyable score card. See
   [docs/features/typing-practice.md](docs/features/typing-practice.md).
+- **Timers, Caffeinate and Toggle Low Power Mode.** Named countdowns from a typed length, keeping
+  the Mac awake until turned off or for a while, and flipping the battery's Energy Mode between
+  Automatic and Low Power. See [timers](docs/features/timers.md),
+  [caffeinate](docs/features/caffeinate.md) and [power mode](docs/features/power-mode.md).
+- **Color Picker, Kill Process, Listening Ports and Confetti.** The system eyedropper with a
+  history, the reader's processes and listening ports to quit, and Raycast's confetti. See
+  [color picker](docs/features/color-picker.md), [processes](docs/features/processes.md) and
+  [confetti](docs/features/confetti.md).
 - **About** shows the commit a build came from beside its version, and links to this fork's
   repository, issues and commits instead of upstream's website and socials.
 - **No support asks.** The About card, the menu-bar and palette items, the launcher command and the

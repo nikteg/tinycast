@@ -101,6 +101,10 @@ every screen but the clipboard, which lands past its pins
 | `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 | `.typingPractice` | `TypingPracticeScreen` | `TypingPracticeView` (see [typing-practice.md](typing-practice.md)) |
+| `.timers` | `TimersScreen` | `PaletteResultList` (see [timers.md](timers.md)) |
+| `.caffeinate` | `CaffeinateScreen` | `PaletteResultList` (see [caffeinate.md](caffeinate.md)) |
+| `.colorHistory` | `ColorHistoryScreen` | `PaletteResultList` (see [color-picker.md](color-picker.md)) |
+| `.processes`, `.ports` | `ProcessesScreen`, `PortsScreen` | `PaletteResultList` (see [processes.md](processes.md)) |
 | `.extensionCommand` | `ExtensionCommandScreen` | `ExtensionCommandView` (see [extensions.md](extensions.md)) |
 
 **Tab rings the three surfaces a reader opens directly — launcher → AI chat → clipboard → launcher**

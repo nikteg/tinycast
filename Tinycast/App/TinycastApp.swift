@@ -27,6 +27,18 @@ struct TinycastApp: App {
         } label: {
             PomodoroMenuBarLabel(appName: appName)
         }
+
+        MenuBarExtra(isInserted: timerMenuBarInsertion) {
+            TimerMenuBarMenu()
+        } label: {
+            TimerMenuBarLabel(appName: appName)
+        }
+
+        MenuBarExtra(isInserted: caffeinateMenuBarInsertion) {
+            CaffeinateMenuBarMenu()
+        } label: {
+            CaffeinateMenuBarLabel(appName: appName)
+        }
     }
 
     /// Read in `body` for Observation; SwiftUI echoes the binding back, so only a change writes.
@@ -69,6 +81,30 @@ struct TinycastApp: App {
             set: { inserted in
                 guard !inserted, isInserted else { return }
                 settings.pomodoroMenuBarEnabled = false
+            })
+    }
+
+    /// Shown while a timer exists; dragging it out hides it until the next timer starts.
+    private var timerMenuBarInsertion: Binding<Bool> {
+        let coordinator = AppCore.shared.timerCoordinator
+        let isInserted = !coordinator.isMenuBarDismissed && !AppCore.shared.timerStore.timers.isEmpty
+        return Binding(
+            get: { isInserted },
+            set: { inserted in
+                guard !inserted, isInserted else { return }
+                coordinator.isMenuBarDismissed = true
+            })
+    }
+
+    /// Shown while caffeinated; dragging it out hides it until the next caffeination.
+    private var caffeinateMenuBarInsertion: Binding<Bool> {
+        let coordinator = AppCore.shared.caffeinateCoordinator
+        let isInserted = !coordinator.isMenuBarDismissed && coordinator.caffeination != nil
+        return Binding(
+            get: { isInserted },
+            set: { inserted in
+                guard !inserted, isInserted else { return }
+                coordinator.isMenuBarDismissed = true
             })
     }
 

@@ -221,6 +221,28 @@ final class LauncherCoordinator {
         case .stopPomodoro:
             dismissPalette()
             core.pomodoroCoordinator.stop()
+        case .startTimer:
+            core.timerCoordinator.show()
+        case .stopAllTimers:
+            core.timerCoordinator.stopAll()
+        case .toggleCaffeinate:
+            dismissPalette()
+            core.caffeinateCoordinator.toggle()
+        case .caffeinateForDuration:
+            core.caffeinateCoordinator.showDurations()
+        case .toggleLowPowerMode:
+            core.powerModeCoordinator.toggleLowPowerMode()
+        case .pickColor:
+            core.colorPickerCoordinator.pickColor()
+        case .colorHistory:
+            core.colorPickerCoordinator.showHistory()
+        case .killProcess:
+            core.processCoordinator.showProcesses()
+        case .listeningPorts:
+            core.processCoordinator.showPorts()
+        case .confetti:
+            dismissPalette()
+            core.confettiCoordinator.fire()
         case .showNotes:
             dismissPalette()
             notesCoordinator.toggle()

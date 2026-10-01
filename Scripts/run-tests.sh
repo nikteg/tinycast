@@ -561,6 +561,15 @@ run updates-test           Tinycast/Features/Updates/Model/*.swift \
 run support-test           Tinycast/Features/Support/Model/*.swift
 run pomodoro-test          Tinycast/Features/Pomodoro/Model/*.swift
 run typing-practice-test   Tinycast/Features/TypingPractice/Model/*.swift
+run timers-test            Tinycast/Features/Timers/Model/*.swift
+run caffeinate-test        Tinycast/Features/Caffeinate/Model/*.swift \
+                           Tinycast/Features/Timers/Model/DurationText.swift
+run color-picker-test      Tinycast/Features/ColorPicker/Model/*.swift \
+                           Tinycast/Features/Clipboard/Model/ColorValue.swift \
+                           Tinycast/Features/Clipboard/Model/ColorFormat.swift \
+                           Tinycast/Features/Clipboard/Model/ColorSpaces.swift
+run process-test           Tinycast/Features/Processes/Model/*.swift
+run power-mode-test        Tinycast/Features/PowerMode/Model/*.swift
 run ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Features/AI/Settings/AISettingsStore.swift
