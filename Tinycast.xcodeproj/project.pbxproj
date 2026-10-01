@@ -1819,13 +1819,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		126012E2DC96E998DD827ED9 /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
-			sourceTree = "<group>";
-		};
 		12DCD476E37E857C160C5EDA /* Service */ = {
 			isa = PBXGroup;
 			children = (
@@ -2027,6 +2020,7 @@
 		23CFFC654FA805DA30283BE1 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				DDE1349A1C3D8118741BFAB6 /* .claude */,
 				6BA88020038D35DA9DE098EC /* pomodoro-ding.wav */,
 				DE1B2298EA4AB219E0E33F03 /* pomodoro-windup.wav */,
 			);
@@ -2098,13 +2092,6 @@
 				054F403BD478830AE32E6A77 /* UI */,
 			);
 			path = MCP;
-			sourceTree = "<group>";
-		};
-		2EC1F75B600F3F76C4B979E6 /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
 			sourceTree = "<group>";
 		};
 		30AC9F80FBCCB573EE458A7E /* WindowSwitcher */ = {
@@ -2312,7 +2299,6 @@
 		579C36B3B74D78014E77DBF2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				C62BE7C2AB3F3369151BBB4D /* .claude */,
 				A06CD16F460BB834860C4EA4 /* ColorHistory.swift */,
 				904FC4786A28BCC0A379D765 /* PickedColor.swift */,
 			);
@@ -2650,13 +2636,6 @@
 			path = Service;
 			sourceTree = "<group>";
 		};
-		75D19004DC713E85D5631CFA /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
-			sourceTree = "<group>";
-		};
 		77B5E80185596C826A64E995 /* Service */ = {
 			isa = PBXGroup;
 			children = (
@@ -2716,13 +2695,6 @@
 				3EAF30E6AF6D472336F4236C /* UI */,
 			);
 			path = Launcher;
-			sourceTree = "<group>";
-		};
-		7FAF772AFD7B9F08023F0821 /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
 			sourceTree = "<group>";
 		};
 		7FBB9936A38A366FCAA3F2A8 /* MenuSearch */ = {
@@ -2916,7 +2888,6 @@
 		91F9B95B6457AA5A9EE1EFE2 /* ColorPicker */ = {
 			isa = PBXGroup;
 			children = (
-				D3888710CDDC6A290297FAF6 /* .claude */,
 				579C36B3B74D78014E77DBF2 /* Model */,
 				B653CB28A26B7571B3F61576 /* Service */,
 				A8B79D34B9903026303C9A47 /* UI */,
@@ -2954,7 +2925,6 @@
 		95CA98985928A88B33F82556 /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				2EC1F75B600F3F76C4B979E6 /* .claude */,
 				87070A80E9E3AB3E4B0A9E54 /* AI */,
 				6E106BD79223C45E7D102798 /* AppleShortcuts */,
 				4852DB90D637B9D8E0B2556C /* Backup */,
@@ -3351,7 +3321,6 @@
 		BCE065D58E699AFB41A13CD3 /* Palette */ = {
 			isa = PBXGroup;
 			children = (
-				75D19004DC713E85D5631CFA /* .claude */,
 				761BF04E2CB1821C6AA3C7B0 /* ActionMenuSearchQuery.swift */,
 				81E2A3F7C4FCA7120A3F6EF5 /* ArmedHover.swift */,
 				D0D05FD9A7137951B2EC6C39 /* CommandEscapeTap.swift */,
@@ -3402,26 +3371,11 @@
 		C2E39BB4200B996EFCF84DE0 /* Processes */ = {
 			isa = PBXGroup;
 			children = (
-				126012E2DC96E998DD827ED9 /* .claude */,
 				E73F4EA749E16149BD89C857 /* Model */,
 				E5B437C771725C03426395BF /* Service */,
 				0727870EED73BB215BACF7A1 /* UI */,
 			);
 			path = Processes;
-			sourceTree = "<group>";
-		};
-		C378BCE5DACCC0E81BBE352F /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
-			sourceTree = "<group>";
-		};
-		C62BE7C2AB3F3369151BBB4D /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
 			sourceTree = "<group>";
 		};
 		C672660B1032FDE58BBA07A8 /* Model */ = {
@@ -3530,13 +3484,6 @@
 			path = Support;
 			sourceTree = "<group>";
 		};
-		D3888710CDDC6A290297FAF6 /* .claude */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = .claude;
-			sourceTree = "<group>";
-		};
 		D62A9A3E2CCA4CC188B8E3FB /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -3626,6 +3573,13 @@
 				17EA0B9FFCBAB10941EC7702 /* VisibilityStore.swift */,
 			);
 			path = Service;
+			sourceTree = "<group>";
+		};
+		DDE1349A1C3D8118741BFAB6 /* .claude */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = .claude;
 			sourceTree = "<group>";
 		};
 		E03B6709C03D364770213872 /* Resources */ = {
@@ -3776,7 +3730,6 @@
 		ED07C8351C0C600505B1FB6F /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				C378BCE5DACCC0E81BBE352F /* .claude */,
 				02E8D16D2C7CD5894F2A3F17 /* CountdownTimer.swift */,
 				D4B1C3C35E233839254E9C20 /* DurationPhrase.swift */,
 				4A3F79B24B671F63A5BCE085 /* DurationText.swift */,
@@ -3829,7 +3782,6 @@
 		F0F299762F9B7388548E4142 /* Caffeinate */ = {
 			isa = PBXGroup;
 			children = (
-				7FAF772AFD7B9F08023F0821 /* .claude */,
 				D006EB45C7B35CDD14C8EDD3 /* Model */,
 				E39AD87F7BD9601BA3E74421 /* Service */,
 				12E27C78C7421F752AC72A62 /* UI */,
