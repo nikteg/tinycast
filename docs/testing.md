@@ -104,6 +104,11 @@ If a change touches anything in the right column, the harness on the left is man
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `GlobeTapDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
+| `timers-test` | `Timers/Model/*.swift` — typed lengths and their names, the spoken and ticking forms, a countdown's clock and order |
+| `caffeinate-test` | `Caffeinate/Model/Caffeination.swift` — how long a hold lasts and what it says |
+| `color-picker-test` | `ColorPicker/Model/*.swift` — a picked colour's notations through the clipboard's `ColorFormat`, the history's order and cap |
+| `process-test` | `Processes/Model/*.swift` — the `ps` and `lsof` parsers, ordering, and name/PID/port queries |
+| `power-mode-test` | `PowerMode/Model/PowerMode.swift` — the battery's Energy Mode from `pmset -g custom`, and the toggle |
 | `typing-practice-test` | `TypingPractice/Model/*.swift` — Monkeytype's typing rules and scoring, the per-second chart, line wrapping, the hidden field's edits, history, and the generated word list and quotes |
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |

@@ -45,6 +45,9 @@ final class AppCore {
     let regionNumberFormat = RegionNumberFormatMonitor()
     let calendarStore = CalendarStore()
     let pomodoroStore = PomodoroStore()
+    let timerStore = TimerStore()
+    let colorHistory = ColorHistoryStore()
+    let processSession = ProcessSession()
     let meetingClock = MeetingClock()
     let updateChecker = UpdateCheckStore()
     let supportReminders: SupportReminderStore
@@ -186,6 +189,17 @@ final class AppCore {
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var pomodoroCoordinator = PomodoroCoordinator(
         store: pomodoroStore, settings: settings, appIndex: appIndex, core: self)
+    @ObservationIgnored private(set) lazy var timerCoordinator = TimerCoordinator(
+        store: timerStore, appIndex: appIndex, paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var caffeinateCoordinator = CaffeinateCoordinator(
+        paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var powerModeCoordinator = PowerModeCoordinator(
+        paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var colorPickerCoordinator = ColorPickerCoordinator(
+        store: colorHistory, paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var processCoordinator = ProcessCoordinator(
+        session: processSession, paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var confettiCoordinator = ConfettiCoordinator(core: self)
     @ObservationIgnored private(set) lazy var fileSearchCoordinator = FileSearchCoordinator(
         settings: settings, appIndex: appIndex, session: fileSearch, palette: palette,
         paletteCoordinator: paletteCoordinator, windowController: windowController, core: self)
@@ -322,12 +336,14 @@ final class AppCore {
                 case .menuSearch: self?.menuSearchCoordinator.load()
                 case .switchWindows: self?.windowSwitchCoordinator.load()
                 case .rooms, .roomWindows: self?.roomCoordinator.load()
+                case .processes, .ports: self?.processCoordinator.load()
                 default: break
                 }
             }
             updateCoordinator.applyEnabled()
             calendarCoordinator.applyEnabled()
             pomodoroCoordinator.start()
+            timerCoordinator.start()
             Task { await appIndex.refresh() }
             Task { await emojiIndex.load() }
             currencyRates.start()

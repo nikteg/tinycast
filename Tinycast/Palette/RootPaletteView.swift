@@ -106,6 +106,16 @@ struct RootPaletteView: View {
         case .typingPractice:
             return TypingPracticeScreen(
                 session: core.typingPractice, coordinator: core.typingPracticeCoordinator)
+        case .timers:
+            return TimersScreen(coordinator: core.timerCoordinator, vm: vm)
+        case .caffeinate:
+            return CaffeinateScreen(coordinator: core.caffeinateCoordinator, vm: vm)
+        case .colorHistory:
+            return ColorHistoryScreen(store: core.colorHistory, core: core, vm: vm)
+        case .processes:
+            return ProcessesScreen(session: core.processSession, core: core, vm: vm)
+        case .ports:
+            return PortsScreen(session: core.processSession, core: core, vm: vm)
         case .calculatorHistory:
             return CalculatorHistoryScreen(
                 history: calcHistory, currencyRates: currencyRates, core: core, vm: vm,

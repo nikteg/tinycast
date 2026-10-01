@@ -31,6 +31,12 @@ open with an `## Invariants` section; read it before changing anything in that a
 [calendar](features/calendar.md) ·
 [pomodoro](features/pomodoro.md) ·
 [typing practice](features/typing-practice.md) ·
+[timers](features/timers.md) ·
+[caffeinate](features/caffeinate.md) ·
+[power mode](features/power-mode.md) ·
+[color picker](features/color-picker.md) ·
+[processes and ports](features/processes.md) ·
+[confetti](features/confetti.md) ·
 [camera](features/camera.md) ·
 [emoji](features/emoji.md) ·
 [dictionary](features/dictionary.md) ·
