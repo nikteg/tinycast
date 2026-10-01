@@ -57,11 +57,15 @@ struct CountdownTimer: Codable, Equatable, Identifiable, Sendable {
         clock = .running(endsAt: now + duration)
     }
 
-    /// Soonest to ring first; paused ones after, least time left first.
-    static func ordered(_ timers: [CountdownTimer], now: Date) -> [CountdownTimer] {
+    /// Soonest to ring first; paused ones after, least time left first. Needs no clock.
+    static func ordered(_ timers: [CountdownTimer]) -> [CountdownTimer] {
         timers.sorted { lhs, rhs in
-            if lhs.isRunning != rhs.isRunning { return lhs.isRunning }
-            return lhs.remaining(now: now) < rhs.remaining(now: now)
+            switch (lhs.clock, rhs.clock) {
+            case (.running(let left), .running(let right)): left < right
+            case (.paused(let left), .paused(let right)): left < right
+            case (.running, .paused): true
+            case (.paused, .running): false
+            }
         }
     }
 }

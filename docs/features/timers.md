@@ -41,4 +41,6 @@ timer, ↵ pauses or resumes, ⌘R restarts, ⌃X stops it and ⌃⇧X stops the
 While a timer runs, the coordinator wakes as the soonest countdown's second turns and advances `now`,
 the one clock every countdown on screen reads. The menu-bar item is its own `MenuBarExtra`, inserted
 while any timer exists. There is no setting for it: dragging it out hides it until the next timer
-starts. **Stop All Timers** is listed only while a timer exists.
+starts. Its menu reads no ticking clock — a running timer states when it ends, a paused one
+what is left — because a title that changed every second would rebuild an open submenu under the
+pointer. **Stop All Timers** is listed only while a timer exists.

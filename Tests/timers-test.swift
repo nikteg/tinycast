@@ -105,7 +105,7 @@ struct TimersTests {
         let short = CountdownTimer.start(DurationPhrase.parse("5m")!, now: start)
         var paused = CountdownTimer.start(DurationPhrase.parse("1m")!, now: start)
         paused.pause(now: start)
-        let ordered = CountdownTimer.ordered([paused, long, short], now: start)
+        let ordered = CountdownTimer.ordered([paused, long, short])
         expect(ordered.map(\.id) == [short.id, long.id, paused.id], "running soonest first, paused last")
     }
 

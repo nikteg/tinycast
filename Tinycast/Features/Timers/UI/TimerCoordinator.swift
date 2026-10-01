@@ -30,8 +30,8 @@ final class TimerCoordinator {
         self.core = core
     }
 
-    /// Soonest to ring first.
-    var timers: [CountdownTimer] { CountdownTimer.ordered(store.timers, now: now) }
+    /// Soonest to ring first; reads no clock, so the menu-bar menu never rebuilds on a tick.
+    var timers: [CountdownTimer] { CountdownTimer.ordered(store.timers) }
 
     /// A timer that rang while Tinycast was quit already had its banner; it just goes.
     func start() {
