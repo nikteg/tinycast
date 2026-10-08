@@ -55,7 +55,7 @@ struct TypingTest: Equatable, Sendable {
 
     mutating func type(_ character: Character, at now: TimeInterval) {
         guard !isFinished else { return }
-        if character == " " { return space(at: now) }
+        if character == " ", inputs[index].count >= words[index].count { return space(at: now) }
         let target = Array(words[index])
         let position = inputs[index].count
         guard position < target.count + Self.extraCharacterLimit else { return }
@@ -68,9 +68,8 @@ struct TypingTest: Equatable, Sendable {
         }
     }
 
-    /// Space on an empty word is swallowed, as Monkeytype does, so a double space never skips one.
+    /// Only a word typed to its full length can be ended; an earlier space is typed as a letter.
     private mutating func space(at now: TimeInterval) {
-        guard !inputs[index].isEmpty else { return }
         record(inputs[index] == words[index], at: now)
         guard index < words.count - 1 else { return finish(at: now) }
         index += 1

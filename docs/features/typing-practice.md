@@ -22,8 +22,9 @@ image.
   palette's ⇥ handler never sees, so the field answers that one itself — and ⌘R through
   `perform(.restart)`; ⌘C is caught in `PaletteWindowController.onCommandShortcut`,
   since the field editor would otherwise take it as an empty copy.
-- **Monkeytype's rules, not a looser version of them.** The first key starts the clock. Space on an
-  empty word does nothing, so a double space never skips a word. Backspace can return to the previous
+- **Monkeytype's rules, with a stricter space.** The first key starts the clock. Space ends a word
+  only once it is typed to its full length; before that it is typed as a wrong letter, so a word is
+  never skipped and the letters after it fall out of step. Backspace can return to the previous
   word only while that word is wrong. A letter past a word's end is kept as an extra, up to
   `TypingTest.extraCharacterLimit`. A quote ends the moment its last word is right, or on a space after
   it; a time test ends on the clock and its last word, cut off, never counts as missed.

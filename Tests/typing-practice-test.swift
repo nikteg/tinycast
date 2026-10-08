@@ -42,15 +42,16 @@ struct TypingPracticeTests {
     static func typesAndAdvances() {
         var test = TypingTest(config: time30, words: ["the", "be", "of"])
         expect(!test.isStarted, "nothing runs until the first key")
-        test.type(" ", at: 5)
-        expect(!test.isStarted && test.index == 0, "a leading space neither starts nor skips a word")
         type("th", into: &test, at: 10)
         expect(test.startedAt == 10, "the first key starts the clock")
         expect(test.currentInput == "th", "letters collect in the word under the caret")
         type("e ", into: &test, at: 11)
         expect(test.index == 1 && test.currentInput.isEmpty, "space moves to the next word")
         test.type(" ", at: 11)
-        expect(test.index == 1, "space on an empty word is swallowed")
+        expect(test.index == 1 && test.currentInput == " ", "a space before a word's end is a letter")
+        expect(test.keystrokes.last?.isCorrect == false, "and a wrong one")
+        type("b ", into: &test, at: 11)
+        expect(test.index == 2 && test.inputs[1] == " b", "so the letters after it are off by one")
         type(String(repeating: "x", count: 40), into: &test, at: 12)
         expect(
             test.currentInput.count == 2 + TypingTest.extraCharacterLimit,
@@ -122,9 +123,9 @@ struct TypingPracticeTests {
         expect(abs(result.raw - 12.0 / 5) < 0.0001, "raw counts every key and space")
         expect(abs(result.accuracy - 1000.0 / 12) < 0.0001, "a wrong word's space is a wrong key too")
 
-        var missed = TypingTest(config: quote, words: ["abc", "de"])
-        type("a de", into: &missed, at: 0)
-        expect(missed.characterCounts.missed == 2, "a passed word misses what was never typed")
+        var skipped = TypingTest(config: quote, words: ["abc", "de"])
+        type("a de", into: &skipped, at: 0)
+        expect(skipped.index == 0 && skipped.currentInput == "a de", "a word cannot be skipped")
         expect(
             TypingTest(config: time30, words: ["a"]).result(at: 10, date: .distantPast) == nil,
             "an untouched test has no result")
