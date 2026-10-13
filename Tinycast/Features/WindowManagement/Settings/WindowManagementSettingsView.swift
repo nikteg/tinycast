@@ -6,6 +6,7 @@ struct WindowManagementSettingsView: View {
     @State private var editor: WindowLayoutEditRequest?
     @State private var pendingDeletion: WindowLayout?
     @State private var customSizeEdit: CustomWindowSizeEditRequest?
+    @State private var chosenPreset: WindowShortcutPreset?
 
     var body: some View {
         @Bindable var settings = settings
@@ -85,6 +86,30 @@ struct WindowManagementSettingsView: View {
                 SettingsRowTitle(.windowManagementOptions, "Gap between windows")
                 Text("Between tiled windows and screen edges.")
             }
+
+            LabeledContent {
+                HStack(spacing: Theme.Spacing.sm) {
+                    Picker("Shortcut preset", selection: $chosenPreset) {
+                        Text("Choose…").tag(WindowShortcutPreset?.none)
+                        ForEach(WindowShortcutPreset.allCases) { preset in
+                            Text(preset.title).tag(Optional(preset))
+                        }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                    Button("Apply") {
+                        guard let chosenPreset else { return }
+                        Task { await core.windowShortcutPresetCoordinator.apply(chosenPreset) }
+                    }
+                    // Live bindings decide, so one edit to an applied preset re-enables it.
+                    .disabled(
+                        chosenPreset == nil
+                            || chosenPreset == core.windowShortcutPresetCoordinator.matchingPreset)
+                }
+            } label: {
+                SettingsRowTitle(.windowManagementOptions, "Shortcut preset")
+                Text("Fills in another app's shortcuts. Others stay as they are.")
+            }
         } header: {
             SettingsSectionHeader(.windowManagementOptions)
         }
@@ -95,7 +120,8 @@ struct WindowManagementSettingsView: View {
         ForEach(WindowCommandCatalog.grouped(), id: \.group) { section in
             Section {
                 ForEach(section.commands) { command in
-                    WindowCommandSettingsRow(command: command)
+                    WindowCommandSettingsRow(
+                        command: command, showsInLauncher: settings.windowManagementShowInLauncher)
                 }
             } header: {
                 Text(section.group.title)
@@ -104,36 +130,31 @@ struct WindowManagementSettingsView: View {
     }
 }
 
-/// One command's shortcut recorder and visibility checkbox, shaped like the shortcuts row.
+/// One command's alias, shortcut recorder and visibility checkbox, shaped like the shortcuts row.
 private struct WindowCommandSettingsRow: View {
     let command: WindowCommand
+    let showsInLauncher: Bool
     @Environment(VisibilityStore.self) private var visibility
 
     var body: some View {
+        let entry = AppEntry(command)
+        let isVisible = visibility.isItemVisible(entry)
         SettingsRow(title: command.name) {
             Image(systemName: command.sfSymbol)
         } trailing: {
+            // The ranker never sees a hidden entry, so typing here would match nothing.
+            AliasField(entry: entry)
+                .settingsEnabled(showsInLauncher && isVisible)
+
             ShortcutRecorder(action: .windowCommand(id: command.id))
 
-            Toggle("", isOn: visibilityBinding)
-                .labelsHidden()
-                .toggleStyle(.checkbox)
-                .launcherVisibilityHelp()
-                .accessibilityLabel("Show \(command.name) in launcher")
+            Toggle(
+                "", isOn: Binding(get: { isVisible }, set: { visibility.setItemVisible($0, for: entry) })
+            )
+            .labelsHidden()
+            .toggleStyle(.checkbox)
+            .launcherVisibilityHelp()
+            .accessibilityLabel("Show \(command.name) in launcher")
         }
-    }
-
-    /// `VisibilityStore` keys on the entry, so this builds the same entry `AppIndex` publishes.
-    private var entry: AppEntry {
-        AppEntry(
-            id: command.entryID, name: command.name,
-            url: URL(string: "tinycast://window-command/" + command.id.rawValue)!, bundleID: nil,
-            kind: .windowCommand)
-    }
-
-    private var visibilityBinding: Binding<Bool> {
-        Binding(
-            get: { visibility.isItemVisible(entry) },
-            set: { visibility.setItemVisible($0, for: entry) })
     }
 }

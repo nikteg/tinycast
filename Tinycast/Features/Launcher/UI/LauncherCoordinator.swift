@@ -67,7 +67,9 @@ final class LauncherCoordinator {
     ) {
         // A category word is no search for the row: learning it would rank the row under "s".
         if !CommandCatalog.isQueryDriven(app) {
-            let term = searchQuery.flatMap { AppEntry.Kind.named(by: $0) == nil ? $0 : nil }
+            let term = searchQuery.flatMap {
+                AppEntry.Kind.matching(by: LauncherOrder.CategoryQuery($0)).contains(app.kind) ? nil : $0
+            }
             ranking.visit(itemKey: app.preferenceKey, query: term)
         }
         // Commands dispatch before the palette hides: mode-switching commands keep it open.
@@ -167,7 +169,7 @@ final class LauncherCoordinator {
             core.quickAICoordinator.show()
         case .aiChat:
             dismissPalette()
-            core.aiChatCoordinator.showWindow()
+            core.aiChatCoordinator.toggleWindow()
         case .fixGrammar:
             core.quickActionCoordinator.run(.fixGrammar)
         case .rewrite:
@@ -257,7 +259,6 @@ final class LauncherCoordinator {
         case .searchSnippets:
             snippetCoordinator.showSnippets()
         case .createSnippet:
-            dismissPalette()
             snippetCoordinator.editSnippet(nil)
         case .createWindowLayout:
             dismissPalette()
@@ -270,8 +271,11 @@ final class LauncherCoordinator {
         case .createRoom:
             core.roomCoordinator.createRoom()
         case .createQuicklink:
-            dismissPalette()
             quicklinkCoordinator.editQuicklink(nil)
+        case .createCustomCommand:
+            customCommandCoordinator.editCustomCommand(nil)
+        case .searchCustomCommands:
+            customCommandCoordinator.showCustomCommands()
         case .importQuicklinks:
             dismissPalette()
             Task { await quicklinkCoordinator.importQuicklinks() }
@@ -329,11 +333,11 @@ final class LauncherCoordinator {
     }
 
     /// Quits the app behind an entry; a no-op (palette stays put) when it isn't running.
-    func quit(_ app: AppEntry) {
+    func quit(_ app: AppEntry, force: Bool = false) {
         guard app.kind == .application, let bundleID = app.bundleID else { return }
         // Nothing here takes focus, so hand it back unless that app is on its way out.
         let quittingPreviousApp = windowController.previousApp?.bundleIdentifier == bundleID
-        guard AppLauncher.quit(bundleID: bundleID) else { return }
+        guard AppLauncher.quit(bundleID: bundleID, force: force) else { return }
         paletteCoordinator.hidePalette(restoreFocus: !quittingPreviousApp)
     }
 }

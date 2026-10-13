@@ -9,7 +9,7 @@ verifying a change is [testing.md](testing.md).
 - Xcode 26 — it provides the SwiftUI macro plugin and the SDK.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen), and for linting:
   `brew install swiftlint`.
-- Node, for the generators and for the two stub servers `run-tests.sh` drives. It is the only
+- Node, for the generators and the local test stub servers `run-tests.sh` drives. It is the only
   scripting runtime here — building the app still needs none of it.
 
 ## First-time setup
@@ -45,6 +45,10 @@ The app target builds and embeds `ClipboardTextHelper` under `Contents/Helpers`,
 Build the app scheme to include it; copying only the main executable omits OCR support. The helper's
 executable name stays fixed even when release builds override the app's product name for a channel.
 
+Dictation similarly embeds its Swift/Core ML helper, named `Tinycast Dev Dictation` in Debug and
+`Tinycast Dictation` in Release, in an accessory `.app` bundle without a bundled icon. Model weights
+download on demand; none are app resources.
+
 ### The dev channel
 
 Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
@@ -67,8 +71,9 @@ Consequences worth knowing:
   and onboarding unseen. Grant and bind once; it persists across rebuilds, because the fixed build path
   and the `Tinycast Self-Signed` identity keep the TCC grant alive.
 - Don't bind the same global hotkey in both — whichever registered first wins.
-- The Hyper Key's Caps Lock remap is `hidutil` state, which is **system-wide, not per-bundle**: quitting
-  one build clears the remap for the other, which then needs a rebind or a relaunch to restore it.
+- The Hyper Key's Caps Lock remap lives on the keyboards, which are **shared, not per-bundle**:
+  enable Hyper in one build at a time so their keyboard owners do not compete. An identical mapping
+  already installed by another build is left unowned.
 
 ## Editor
 
@@ -150,6 +155,7 @@ Every `*.generated.swift` file is excluded: formatting one is hand-editing it, a
 `node Scripts/gen-emoji.js` would revert it. swift-format also refuses any file that does not parse, so
 a failure from either command is a syntax error rather than a tooling problem — and it is why ⌘S looks
 like it does nothing while a file is mid-edit with unbalanced braces.
+The two protected scrolling primitives, `EdgeDissolve.swift` and `ThinScrollbar.swift`, are also excluded.
 
 **Think twice before leaning on this.** A formatter was rejected here on measured evidence, and that
 stands: running it over the tree touched 68 files, and 67 of those changed more than whitespace.
@@ -174,6 +180,7 @@ downloads its source, so run them online, then commit the result:
 
 ```sh
 node Scripts/gen-emoji.js            # -> Tinycast/Features/Emoji/Model/EmojiData.generated.swift
+                                     #    + Tinycast/Resources/EmojiKeywords/<language>.txt
 node Scripts/gen-currencies.js       # -> Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
 node Scripts/gen-countries.js        # -> Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift
 node Scripts/gen-typing-data.js      # -> Tinycast/Features/TypingPractice/Resources/Typing*.generated.json
@@ -182,6 +189,10 @@ node Scripts/gen-typing-data.js      # -> Tinycast/Features/TypingPractice/Resou
 `gen-typing-data.js` reads Monkeytype's English word list and quotes at a pinned commit; see
 [typing-practice.md](features/typing-practice.md). Node's `fetch` ignores an HTTP proxy, so behind one,
 download the two files first and pass their paths.
+
+`gen-emoji.js` also writes one CLDR keyword pack per language in its `KEYWORD_LOCALES`; adding a
+language is one line there. Pass a directory to keep the downloads between runs:
+`node Scripts/gen-emoji.js /tmp/emoji-sources`.
 
 `gen-countries.js` joins IANA's `zone.tab` with CLDR's `en` territory names on the ISO 3166 code. Re-run
 it when IANA adds or moves a country's zone; see [calculator.md](features/calculator.md#time-zones).

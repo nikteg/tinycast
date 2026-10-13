@@ -1,38 +1,36 @@
 import SwiftUI
 
-/// One list over every registry; where a result comes from changes only its badge.
+/// The Raycast Store's search, and an install button per result.
 struct ExtensionStorePanel: View {
+    let storeInstall: ExtensionDeepLink.StoreInstall?
     let onClose: () -> Void
     @Environment(AppCore.self) private var core
 
     @State private var query = ""
     @State private var results: [ExtensionListing] = []
-    @State private var notices: [String] = []
+    @State private var searchFailure: String?
     @State private var searching = false
     @State private var searched = false
     @State private var installing: [String: ExtensionInstaller.Progress] = [:]
     @State private var failures: [String: String] = [:]
     @State private var installed: Set<String> = []
     @State private var searchTask: Task<Void, Never>?
-    @State private var editingRegistries = false
 
-    private var registries: [ExtensionRegistry] { core.settings.extensionRegistries }
-
-    /// The panel cannot reach the pane's registry settings, so it at least names them.
-    private var searchingSummary: String {
-        let on = registries.filter(\.isEnabled)
-        guard !on.isEmpty else {
-            return "No registries are enabled. Turn one on under Install → Registries."
-        }
-        let names = on.map(\.name).joined(separator: ", ")
-        return "Searching \(names). Store extensions install as they are; a repository is built first."
+    init(storeInstall: ExtensionDeepLink.StoreInstall? = nil, onClose: @escaping () -> Void) {
+        self.storeInstall = storeInstall
+        self.onClose = onClose
+        _searching = State(initialValue: storeInstall != nil)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
-            header
+            ExtensionSettingsEditorHeader(
+                title: storeInstall == nil ? "Search Extensions" : "Install Extension",
+                subtitle: "The Raycast Store's extensions arrive built, so they install as they are.")
             // The same borderless field the panes use, rather than a bordered capsule of its own.
-            SettingsFilterField(prompt: "Search extensions…", query: $query)
+            if storeInstall == nil {
+                SettingsFilterField(prompt: "Search extensions…", query: $query)
+            }
             content
             // The list scrolls right up to the footer without it, cutting the last row.
             Divider()
@@ -42,53 +40,37 @@ struct ExtensionStorePanel: View {
         .frame(width: 620, height: 560)
         .extensionSettingsEditorPanelSurface()
         .onChange(of: query) { _, value in scheduleSearch(value) }
-        // Re-run against whatever the registries now are, so the results match the header again.
-        .onChange(of: core.settings.extensionRegistries) { _, _ in scheduleSearch(query) }
-        .settingsEditorPanel(isPresented: $editingRegistries) {
-            ExtensionRegistriesPanel(onClose: { editingRegistries = false })
-        }
         .onDisappear { searchTask?.cancel() }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            // Named for the row that opens it, and it names the registries, not their count.
-            HStack(alignment: .firstTextBaseline) {
-                Text("Search Extensions").font(Theme.Typography.panelTitle)
-                Spacer()
-                // Changing what is searched belongs in the flow, not back out in the pane.
-                Button("Registries…") { editingRegistries = true }
-            }
-            Text(searchingSummary)
-                .font(Theme.Typography.rowTitle)
-                .foregroundStyle(Theme.Colors.textSecondary)
+        .task {
+            if let storeInstall { await loadListings(query: storeInstall.name) }
         }
     }
 
     @ViewBuilder
     private var content: some View {
-        if registries.filter(\.isEnabled).isEmpty {
-            // Otherwise this is a search field that can only ever find nothing.
-            noRegistriesState
-        } else if query.trimmingCharacters(in: .whitespaces).isEmpty {
+        if storeInstall == nil && query.trimmingCharacters(in: .whitespaces).isEmpty {
             emptyState
         } else if searching && results.isEmpty {
             VStack(spacing: Theme.Spacing.md) {
                 ProgressView()
-                Text("Searching…").font(.callout).foregroundStyle(.secondary)
+                Text(storeInstall == nil ? "Searching…" : "Looking up extension…")
+                    .font(.callout).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let searchFailure {
+            placeholder(searchFailure)
         } else if results.isEmpty && searched {
-            placeholder("Nothing matches “\(query)”.")
+            placeholder(
+                storeInstall.map { "“\($0.handle)/\($0.name)” is unavailable in the Raycast Store." }
+                    ?? "Nothing matches “\(query)”.")
         } else {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
+                LazyVStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                     ForEach(results) { listing in
                         StoreRow(
                             listing: listing,
                             state: state(for: listing),
                             onInstall: { install(listing) })
-                        Divider().opacity(0.4)
                     }
                 }
                 .hideNativeScrollers()
@@ -116,23 +98,6 @@ struct ExtensionStorePanel: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// Nothing is searchable, so the only useful thing here is the way to fix that.
-    private var noRegistriesState: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            Image(systemName: "tray")
-                .font(.system(size: 28, weight: .light))
-                .foregroundStyle(.tertiary)
-            Text("No registries enabled")
-                .font(.headline)
-            Text("Turn one on and this will have somewhere to look.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button("Registries…") { editingRegistries = true }
-                .padding(.top, Theme.Spacing.xs)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     private func placeholder(_ text: String) -> some View {
         Text(text)
             .font(.callout)
@@ -141,14 +106,7 @@ struct ExtensionStorePanel: View {
     }
 
     private var footer: some View {
-        HStack(alignment: .firstTextBaseline) {
-            // A registry that failed is worth saying so about — the results are quietly incomplete.
-            if !notices.isEmpty {
-                Label(notices.joined(separator: " · "), systemImage: "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                    .lineLimit(2)
-            }
+        HStack {
             Spacer()
             // Escape, not Return: Return belongs to the search field while typing.
             Button("Done", action: onClose)
@@ -161,7 +119,7 @@ struct ExtensionStorePanel: View {
 
     // MARK: - State
 
-    private func state(for listing: ExtensionListing) -> StoreRow.State {
+    private func state(for listing: ExtensionListing) -> StoreRow.InstallState {
         if installed.contains(listing.name) { return .installed }
         if let progress = installing[listing.id] { return .installing(progress.message) }
         if let failure = failures[listing.id] { return .failed(failure) }
@@ -173,43 +131,44 @@ struct ExtensionStorePanel: View {
 
     // MARK: - Searching
 
-    /// Every keystroke is a request to someone else's API, on a limit of sixty an hour.
+    /// Debounced: every keystroke would otherwise be a request to someone else's API.
     private func scheduleSearch(_ value: String) {
         searchTask?.cancel()
         let trimmed = value.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else {
             results = []
-            notices = []
+            searchFailure = nil
             searched = false
             return
         }
         searchTask = Task {
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
-            await search(trimmed)
+            await loadListings(query: trimmed)
         }
     }
 
-    private func search(_ trimmed: String) async {
+    private func loadListings(query: String) async {
         searching = true
         defer {
             searching = false
             searched = true
         }
-        let found = await ExtensionStoreClient().search(trimmed, in: registries)
-        guard !Task.isCancelled else { return }
-
-        // The store's copy wins a tie: it is prebuilt, so installing it needs no toolchain.
-        var seen = Set<String>()
-        var merged: [ExtensionListing] = []
-        for result in found {
-            for listing in result.listings where seen.insert(listing.name).inserted {
-                merged.append(listing)
+        do {
+            let client = ExtensionStoreClient()
+            let found: [ExtensionListing]
+            if let storeInstall {
+                found =
+                    try await client.lookup(handle: storeInstall.handle, name: storeInstall.name)
+                    .map { [$0] } ?? []
+            } else {
+                found = try await client.search(query)
             }
-        }
-        results = merged
-        notices = found.compactMap { result in
-            result.failure.map { "\(result.registry.name): \($0)" }
+            guard !Task.isCancelled else { return }
+            (results, searchFailure) = (found, nil)
+        } catch {
+            guard !Task.isCancelled else { return }
+            (results, searchFailure) = ([], error.localizedDescription)
         }
     }
 
@@ -221,9 +180,7 @@ struct ExtensionStorePanel: View {
         Task {
             do {
                 try await core.extensions.install(
-                    listing: listing,
-                    packageManager: core.settings.extensionPackageManager,
-                    additionalSearchPaths: core.settings.extensionCustomSearchPaths,
+                    listing,
                     onProgress: { progress in
                         Task { @MainActor in installing[listing.id] = progress }
                     })
@@ -236,9 +193,9 @@ struct ExtensionStorePanel: View {
     }
 }
 
-/// One search result: what it is, where it came from, and the button that installs it.
+/// One search result: what it is, who made it, how many use it, and the button that installs it.
 private struct StoreRow: View {
-    enum State: Equatable {
+    enum InstallState: Equatable {
         case idle
         case installing(String)
         case installed
@@ -246,46 +203,36 @@ private struct StoreRow: View {
         case failed(String)
     }
 
+    /// Larger than a settings row's icon: in a store listing, the artwork is how a result is found.
+    private static let iconSide: CGFloat = 40
+
     let listing: ExtensionListing
-    let state: State
+    let state: InstallState
     let onInstall: () -> Void
     @Environment(\.isDarkAppearance) private var isDark
+    @State private var hovered = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: Theme.Spacing.lg) {
+        HStack(alignment: .top, spacing: Theme.Spacing.xl) {
             ExtensionIconView(
                 resolved: listing.iconURL(isDark: isDark).map {
                     ExtensionImage.Resolved(source: .remote($0))
                 },
-                size: 32)
-            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
-                HStack(spacing: Theme.Spacing.sm) {
-                    Text(listing.title).font(.body.weight(.medium))
-                    if listing.needsBuild {
-                        Text("builds on install")
-                            .font(.caption2)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(Theme.Colors.controlSurface, in: .capsule)
-                            .foregroundStyle(.secondary)
-                            .help(
-                                "This registry serves source. Installing runs your package manager "
-                                    + "and the extension's build script.")
-                    }
-                }
+                size: Self.iconSide)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                Text(listing.title)
+                    .font(.headline)
+                    .lineLimit(1)
                 if !listing.summary.isEmpty {
                     Text(listing.summary)
-                        .font(.caption)
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
-                        .truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Text(listing.subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                facts
                 if case .failed(let message) = state {
-                    Text(message)
+                    Label(message, systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundStyle(.orange)
                         .lineLimit(3)
@@ -295,7 +242,29 @@ private struct StoreRow: View {
             Spacer(minLength: Theme.Spacing.md)
             action
         }
-        .padding(.vertical, Theme.Spacing.md)
+        .padding(Theme.Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
+                .fill(hovered ? Theme.Colors.rowHover : .clear)
+        )
+        .onHover { hovered = $0 }
+    }
+
+    private var facts: some View {
+        HStack(spacing: Theme.Spacing.xl) {
+            if !listing.author.isEmpty {
+                StoreFact(symbol: "person.crop.circle", text: listing.author)
+            }
+            StoreFact(
+                symbol: "square.grid.2x2",
+                text: "\(listing.commandCount) command\(listing.commandCount == 1 ? "" : "s")")
+            if let downloads = listing.downloadCount, downloads > 0 {
+                StoreFact(symbol: "arrow.down.circle", text: ExtensionListing.abbreviate(downloads))
+                    .help("\(downloads.formatted()) installs")
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.tertiary)
     }
 
     @ViewBuilder
@@ -303,6 +272,7 @@ private struct StoreRow: View {
         switch state {
         case .idle:
             Button("Install", action: onInstall)
+                .buttonStyle(ExtensionSettingsEditorButtonStyle(role: .primary, fillsWidth: false))
         case .installing(let message):
             HStack(spacing: Theme.Spacing.sm) {
                 ProgressView().controlSize(.small)
@@ -311,14 +281,29 @@ private struct StoreRow: View {
             .fixedSize()
         case .installed:
             Label("Installed", systemImage: "checkmark.circle.fill")
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.green)
-                .labelStyle(.titleAndIcon)
         case .alreadyInstalled:
             Button("Reinstall", action: onInstall)
-                .help("Already installed. Reinstalling replaces it with the registry's copy.")
+                .buttonStyle(ExtensionSettingsEditorButtonStyle(role: .standard, fillsWidth: false))
+                .help("Already installed. Reinstalling replaces it with the store's copy.")
         case .failed:
             Button("Retry", action: onInstall)
+                .buttonStyle(ExtensionSettingsEditorButtonStyle(role: .standard, fillsWidth: false))
         }
+    }
+}
+
+/// One fact under a result, behind the glyph that says what kind of fact it is.
+private struct StoreFact: View {
+    let symbol: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            Image(systemName: symbol)
+            Text(text)
+        }
+        .lineLimit(1)
     }
 }

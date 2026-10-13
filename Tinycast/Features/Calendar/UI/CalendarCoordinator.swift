@@ -4,6 +4,7 @@ import AppKit
 @MainActor
 @Observable
 final class CalendarCoordinator {
+    private(set) var editor: EventEditorSession?
     private let store: CalendarStore
     private let clock: MeetingClock
     private let appIndex: AppIndex
@@ -45,9 +46,6 @@ final class CalendarCoordinator {
     /// The window every surface reads, so the card, the chord and the schedule cannot disagree.
     var window: UpcomingWindow { UpcomingWindow(leadMinutes: settings.joinWindowMinutes.rawValue) }
 
-    /// The days the store reads, and the wording every sentence that names them uses.
-    var span: MeetingSpan { MeetingSpan(includesTomorrow: settings.calendarIncludesTomorrow) }
-
     /// The meeting the join card shows; `now` comes from the ticking clock.
     var cardedMeeting: MeetingEvent? {
         guard settings.calendarEnabled else { return nil }
@@ -77,6 +75,13 @@ final class CalendarCoordinator {
             from: store.events, now: clock.now, dismissed: dismissedFromMenuBar)
     }
 
+    /// The menu bar's day-by-day list; clock-driven, so a meeting that ends leaves on the minute.
+    var menuBarAgenda: [MeetingDayGroup] {
+        let now = clock.now
+        return MeetingDayGroup.grouping(
+            UpcomingWindow.agenda(from: store.events, now: now), now: now, calendar: .current)
+    }
+
     /// Dismisses what the menu drew: a handover mid-click must not eat the arriving event.
     func dismissMenuBarEvent(_ meeting: MeetingEvent) {
         dismissedFromMenuBar.insert(meeting.id)
@@ -102,8 +107,8 @@ final class CalendarCoordinator {
                 await core.confirm(
                     title: "Enable calendar?",
                     message:
-                        "Tinycast reads \(span.possessivePhrase) events to find join links. "
-                        + "Nothing leaves this Mac.",
+                        "Tinycast reads \(settings.calendarSpan.possessivePhrase) events "
+                        + "to find join links. Nothing leaves this Mac.",
                     symbol: "calendar", confirmTitle: "Continue", tone: .neutral,
                     confirmRole: .standard)
             else { return }
@@ -121,6 +126,7 @@ final class CalendarCoordinator {
         appIndex.setCommandsVisible(
             [.joinNextMeeting, .copyMeetingLink, .mySchedule, .openInCalendar, .createEvent], enabled)
         guard enabled else {
+            cancelEventEditing()
             store.stop()
             clock.stop()
             publishEntries()
@@ -140,7 +146,7 @@ final class CalendarCoordinator {
 
     /// Changing which days are read re-queries EventKit, so it goes through the store.
     func applySpan() {
-        store.span = span
+        store.span = settings.calendarSpan
     }
 
     /// The clock runs while something is watching it. With all three off an idle Mac owns no timer.
@@ -193,7 +199,8 @@ final class CalendarCoordinator {
         guard settings.calendarEnabled, settings.autoJoinMeetings, !core.isShowingDialog else {
             return
         }
-        let policy = AutoJoinPolicy(armedAt: armedAt)
+        let policy = AutoJoinPolicy(
+            armedAt: armedAt, namedProvidersOnly: settings.autoJoinNamedProvidersOnly)
         guard
             let meeting = policy.meeting(
                 from: store.events, now: clock.now, window: window, joined: autoJoined)
@@ -263,28 +270,54 @@ final class CalendarCoordinator {
     }
 
     func createEvent() {
-        paletteCoordinator.hidePalette(restoreFocus: false)
+        store.refreshAccess()
         guard settings.calendarEnabled, store.access == .granted else {
             report("Turn Calendar on in Settings first")
             return
         }
-        NSApp.activate(ignoringOtherApps: true)
-        Task {
-            guard let draft = await core.createEvent() else { return }
-            guard store.createEvent(draft, now: Date()) else {
+        guard !paletteCoordinator.isShowing(.eventEditor) else { return }
+        // A hidden palette keeps the editor mounted, so its draft is the one to bring back.
+        if editor == nil { editor = EventEditorSession() }
+        paletteCoordinator.showPalette(mode: .eventEditor)
+    }
+
+    func saveEvent() {
+        guard let editor, editor.draft.isValid, !core.isShowingDialog else { return }
+        store.refreshAccess()
+        guard settings.calendarEnabled, store.access == .granted else {
+            cancelEventEditing()
+            report("Turn Calendar on in Settings first")
+            return
+        }
+        guard store.createEvent(editor.draft, now: Date()) else {
+            Task {
                 _ = await core.reportFailure(
                     title: "Couldn't create the event",
                     message: "No calendar on this Mac accepts new events.",
                     symbol: "calendar.badge.exclamationmark", recovery: nil)
-                return
             }
-            core.showMessage("Event created")
+            return
         }
+        cancelEventEditing()
+        core.showMessage("Event created")
+    }
+
+    func cancelEventEditing() {
+        guard core.palette.mode == .eventEditor else { return }
+        if !core.palette.pop(preservingSelection: true) {
+            paletteCoordinator.hidePalette()
+            core.palette.prepare(mode: .launcher)
+        }
+        editor = nil
+    }
+
+    func editorDidClose(_ editor: EventEditorSession) {
+        if self.editor === editor { self.editor = nil }
     }
 
     func openNextMeetingInCalendar() {
         guard let meeting = window.joinable(from: store.events, now: Date()) ?? agenda.first else {
-            report("Nothing scheduled \(span.orPhrase)")
+            report("Nothing scheduled \(settings.calendarSpan.orPhrase)")
             return
         }
         openInCalendar(meeting)
@@ -302,6 +335,10 @@ final class CalendarCoordinator {
     func activateMeeting(id: String) {
         guard let meeting = store.event(id: id) else { return }
         join(meeting)
+    }
+
+    func meeting(entryID: String) -> MeetingEvent? {
+        MeetingEvent.id(fromEntryID: entryID).flatMap(store.event(id:))
     }
 
     /// `uninvited` marks an auto join, the only case that may have to ask before it acts.
@@ -357,6 +394,12 @@ final class CalendarCoordinator {
 
     func showSchedule() {
         paletteCoordinator.togglePalette(mode: .schedule)
+    }
+
+    /// Loaded before the push, so the page's first frame is already filled.
+    func showDetails(of meeting: MeetingEvent) {
+        store.loadDetails(of: meeting)
+        paletteCoordinator.navigate(to: .meetingDetails)
     }
 
     /// A miss is transient, so it reports through the HUD rather than a dialog needing dismissal.

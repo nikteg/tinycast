@@ -13,6 +13,9 @@ ask for upstream features.
   <a href="LICENSE">
     <img alt="License: AGPL-3.0"
          src="https://img.shields.io/badge/License-AGPL--3.0-3DA639?style=flat"></a>
+  <a href="https://discord.gg/v2Eeb4QQy3">
+    <img alt="Join the Tinycast Discord"
+         src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white"></a>
 </p>
 
 <p align="center">
