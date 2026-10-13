@@ -61,6 +61,8 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
   history, the reader's processes and listening ports to quit, and Raycast's confetti. See
   [color picker](docs/features/color-picker.md), [processes](docs/features/processes.md) and
   [confetti](docs/features/confetti.md).
+- **Uptime.** What the `uptime` command prints — the time since boot, sessions and load averages —
+  in a pill. See [uptime](docs/features/uptime.md).
 - **About** shows the commit a build came from beside its version, and links to this fork's
   repository, issues and commits instead of upstream's website and socials.
 - **No support asks.** The About card, the menu-bar and palette items, the launcher command and the

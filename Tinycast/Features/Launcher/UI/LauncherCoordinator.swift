@@ -245,6 +245,13 @@ final class LauncherCoordinator {
         case .confetti:
             dismissPalette()
             core.confettiCoordinator.fire()
+        case .uptime:
+            dismissPalette()
+            if let report = UptimeProvider.current() {
+                core.showMessage(report.line, tone: .neutral)
+            } else {
+                core.showMessage("Couldn't read the uptime", tone: .danger)
+            }
         case .showNotes:
             dismissPalette()
             notesCoordinator.toggle()

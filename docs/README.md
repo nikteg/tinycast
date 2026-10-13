@@ -37,6 +37,7 @@ open with an `## Invariants` section; read it before changing anything in that a
 [color picker](features/color-picker.md) ·
 [processes and ports](features/processes.md) ·
 [confetti](features/confetti.md) ·
+[uptime](features/uptime.md) ·
 [camera](features/camera.md) ·
 [emoji](features/emoji.md) ·
 [dictionary](features/dictionary.md) ·

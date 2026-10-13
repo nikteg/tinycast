@@ -668,6 +668,7 @@ run color-picker-test      Tinycast/Features/ColorPicker/Model/*.swift \
                            Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 run process-test           Tinycast/Features/Processes/Model/*.swift
 run power-mode-test        Tinycast/Features/PowerMode/Model/*.swift
+run uptime-test            Tinycast/Features/Uptime/Model/*.swift
 run ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Features/AI/Settings/AISettingsStore.swift
