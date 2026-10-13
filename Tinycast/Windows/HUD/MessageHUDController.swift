@@ -15,9 +15,10 @@ final class MessageHUDController {
             screen: { settings.openOnCursorScreen ? .underCursor : .primary })
     }
 
-    func show(message: String, tone: DialogTone = .success) {
+    func show(message: String, tone: DialogTone = .success, dwell: TimeInterval? = nil) {
         presenter.show(
-            MessageHUDView(message: message, accessory: .tone(tone)).environment(\.metrics, metrics))
+            MessageHUDView(message: message, accessory: .tone(tone)).environment(\.metrics, metrics),
+            dwell: dwell)
     }
 
     /// Stays up until the work it reports ends and something replaces it, or `dismiss()` runs.

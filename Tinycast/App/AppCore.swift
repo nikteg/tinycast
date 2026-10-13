@@ -942,8 +942,8 @@ final class AppCore {
     }
 
     /// The transient success/info pill, so `messageHUD` stays single-owned alongside `dialogs`.
-    func showMessage(_ message: String, tone: DialogTone = .success) {
-        messageHUD.show(message: message, tone: tone)
+    func showMessage(_ message: String, tone: DialogTone = .success, dwell: TimeInterval? = nil) {
+        messageHUD.show(message: message, tone: tone, dwell: dwell)
     }
 
     /// The same pill with a spinner, for work the reader started and cannot otherwise see running.

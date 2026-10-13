@@ -248,7 +248,7 @@ final class LauncherCoordinator {
         case .uptime:
             dismissPalette()
             if let report = UptimeProvider.current() {
-                core.showMessage(report.line, tone: .neutral)
+                core.showMessage(report.line, tone: .neutral, dwell: Theme.Duration.readingHUD)
             } else {
                 core.showMessage("Couldn't read the uptime", tone: .danger)
             }

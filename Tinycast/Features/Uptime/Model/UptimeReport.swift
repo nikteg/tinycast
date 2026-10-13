@@ -1,42 +1,19 @@
 import Foundation
 
-/// The line `uptime` prints: the clock, the time since boot, signed-in sessions and load averages.
+/// How long the Mac has been up, and since when.
 struct UptimeReport: Equatable, Sendable {
-    /// Already formatted for the reader's clock.
-    let clock: String
     let sinceBoot: TimeInterval
-    let users: Int
-    let loadAverages: [Double]
+    /// The boot moment, already formatted for the reader's clock.
+    let booted: String
 
-    var line: String {
-        let loads = loadAverages.map { String(format: "%.2f", $0) }.joined(separator: " ")
-        return "\(clock) up \(Self.span(sinceBoot)), \(users) user\(users == 1 ? "" : "s"), "
-            + "load averages: \(loads)"
-    }
+    var line: String { "Up \(Self.span(sinceBoot)) · since \(booted)" }
 
-    /// BSD `w`'s wording, including its rounding to the nearest minute once past the first.
+    /// "2 days 14 hours 22 minutes": to the minute, so it holds still while the pill is up.
     static func span(_ seconds: TimeInterval) -> String {
-        var total = max(Int(seconds), 0)
-        if total > 60 { total += 30 }
-        let days = total / 86_400
-        let hours = total % 86_400 / 3600
-        let minutes = total % 3600 / 60
-        let secs = total % 60
-        var parts: [String] = []
-        if days > 0 { parts.append(counted(days, "day")) }
-        if hours > 0, minutes > 0 {
-            parts.append("\(hours):" + String(format: "%02d", minutes))
-        } else if hours > 0 {
-            parts.append(counted(hours, "hr"))
-        } else if minutes > 0 {
-            parts.append(counted(minutes, "min"))
-        } else {
-            parts.append(counted(secs, "sec"))
-        }
-        return parts.joined(separator: ", ")
-    }
-
-    private static func counted(_ value: Int, _ unit: String) -> String {
-        "\(value) \(unit)\(value > 1 ? "s" : "")"
+        let minutes = max(0, Int(seconds)) / 60
+        let parts = [(minutes / 1440, "day"), (minutes % 1440 / 60, "hour"), (minutes % 60, "minute")]
+            .filter { $0.0 > 0 }
+            .map { "\($0.0) \($0.1)\($0.0 == 1 ? "" : "s")" }
+        return parts.isEmpty ? "less than a minute" : parts.joined(separator: " ")
     }
 }

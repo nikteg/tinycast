@@ -1,13 +1,12 @@
 # Uptime
 
-**Uptime** shows what the `uptime` command prints, in a pill:
-`9:36 up 3 days, 2:14, 6 users, load averages: 1.42 1.61 1.75`.
+**Uptime** shows how long the Mac has been up and when it booted, in a pill:
+`Up 2 days 14 hours 22 minutes · since Sat 11 Oct 19:21`.
 
 ## Invariants
 
-- **The same reads as `uptime`, no subprocess.** `UptimeProvider` takes `kern.boottime`, counts
-  utmpx `USER_PROCESS` sessions and calls `getloadavg`, all synchronously on the main actor.
-- **BSD `w`'s wording.** `UptimeReport.span` keeps its units, its singulars and its rounding to the
-  nearest minute once past the first; `uptime-test` pins them. Only the clock follows the reader's
-  locale, and the runs of padding spaces `uptime` aligns with are dropped, since nothing lines up
-  under a pill.
+- **`kern.boottime` is the only source**, the clock `uptime` itself reads, taken synchronously on the
+  main actor rather than by running the command.
+- **To the minute.** `UptimeReport.span` drops seconds and empty units, so the pill holds still for
+  the `readingHUD` dwell it stays up; `uptime-test` pins the wording. Only the boot date follows the
+  reader's locale.

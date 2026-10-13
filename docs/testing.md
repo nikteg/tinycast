@@ -137,7 +137,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `color-picker-test` | `ColorPicker/Model/*.swift` — a picked colour's notations through the clipboard's `ColorFormat`, the history's order and cap |
 | `process-test` | `Processes/Model/*.swift` — the `ps` and `lsof` parsers, ordering, and name/PID/port queries |
 | `power-mode-test` | `PowerMode/Model/PowerMode.swift` — the battery's Energy Mode from `pmset -g custom`, and the toggle |
-| `uptime-test` | `Uptime/Model/UptimeReport.swift` — BSD `w`'s span wording and rounding, and the whole line |
+| `uptime-test` | `Uptime/Model/UptimeReport.swift` — the span's units and minute precision, and the whole line |
 | `typing-practice-test` | `TypingPractice/Model/*.swift` — Monkeytype's typing rules and scoring, the per-second chart, line wrapping, the hidden field's edits, history, and the generated word list and quotes |
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |

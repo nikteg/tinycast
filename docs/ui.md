@@ -572,7 +572,8 @@ sole owner rule) and is the only presenter, so every confirmation in the app loo
   `DialogRequest`, where the icon rule is the opposite. It leads, as an extension toast's does, so the
   outcome lands at a glance before the sentence is read. Auto-dismisses after
   `Duration.messageHUD` (2.4s) — longer than the volume box, since a sentence needs reading time and a
-  level only needs a glance — and a repeat call replaces rather than stacks.
+  level only needs a glance — and a repeat call replaces rather than stacks. A pill read for its
+  facts rather than its outcome, such as Uptime, passes `Duration.readingHUD` (6s) instead.
 - **The same pill reports work still running**, through `showProgress(message:onCancel:)`: a Quick Action set to
   replace has no panel to watch the answer arrive in, so the pill says `Fixing Grammar…` in its place
   and the result message replaces it when the model is done. Its leading mark is a spinner rather
