@@ -80,7 +80,7 @@ struct TypingPracticeView: View {
                             .font(metrics.typography.rowTitle)
                             .foregroundStyle(Theme.Colors.textSecondary)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Theme.Colors.panelScrim)
+                            .background(.regularMaterial)
                     }
                 }
             Spacer(minLength: 0)

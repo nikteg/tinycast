@@ -81,10 +81,6 @@ struct AppearanceTests {
             adapts(label, token)
         }
 
-        print("# the scrim inverts rather than ramping: it lightens the light surface")
-        check("light scrim is white", components(c.panelScrim, .aqua)[0] == 255)
-        check("dark scrim is black", components(c.panelScrim, .darkAqua)[0] == 0)
-
         print("# .system hands the choice back to AppKit")
         check("system is nil", AppAppearance.system.nsAppearance == nil)
         check("light is aqua", AppAppearance.light.nsAppearance?.isDark == false)
