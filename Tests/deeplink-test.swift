@@ -102,16 +102,23 @@ struct DeepLinkTests {
             "an uppercase UUID still resolves")
     }
 
+    static func quickActionRows(id: UUID, uuid: String) -> [(String, HotKeyAction)] {
+        #if AI_FEATURES
+        [(CustomQuickAction.entryIDPrefix + uuid, .quickAction(id: id))]
+        #else
+        []
+        #endif
+    }
+
     static func storedRows(id: UUID, uuid: String) -> [(String, HotKeyAction)] {
         [
             (CustomWindowSize.entryIDPrefix + uuid, .customWindowSize(id: id)),
             (WindowLayout.entryIDPrefix + uuid, .windowLayout(id: id)),
             (Room.entryIDPrefix + uuid, .windowRoom(id: id)),
-            (CustomQuickAction.entryIDPrefix + uuid, .quickAction(id: id)),
             (CustomCommand.entryIDPrefix + uuid, .customCommand(id: id)),
             (Quicklink.entryIDPrefix + uuid, .quicklink(id: id)),
             (AppleShortcut.entryIDPrefix + uuid, .appleShortcut(id: id))
-        ]
+        ] + quickActionRows(id: id, uuid: uuid)
     }
 
     static func entryIDChecks() {
@@ -248,7 +255,7 @@ struct DeepLinkTests {
     static func settingsChecks() {
         let slugs = SettingsTab.allCases.map(\.slug)
         expect(Set(slugs).count == slugs.count, "every Settings tab has a slug of its own")
-        for tab in SettingsTab.allCases {
+        for tab in SettingsTab.allCases where tab.isBuilt {
             expect(SettingsTab(slug: tab.slug) == tab, "settings/\(tab.slug) opens its own tab")
         }
         expect(SettingsTab(slug: "nope") == nil, "an unknown tab opens nothing")

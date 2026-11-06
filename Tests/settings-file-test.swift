@@ -41,12 +41,18 @@ struct SettingsFileTest {
             current = key.section
         }
         check("each section's keys are declared together", reopened.isEmpty)
+        #if AI_FEATURES
+        let aiSections = ["ai", "quickActions"]
+        #else
+        let aiSections: [String] = []
+        #endif
         check(
             "sections follow the Settings sidebar",
             SettingsFileKey.sections == [
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
-                "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts", "ai",
-                "quickActions", "dictation", "fileSearch", "notes", "snippets", "navigation",
+                "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts"
+            ] + aiSections + [
+                "dictation", "fileSearch", "notes", "snippets", "navigation",
                 "windowManagement", "clipboard", "emoji", "calendar", "pomodoro", "extensions"
             ])
 

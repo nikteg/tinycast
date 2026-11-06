@@ -134,7 +134,9 @@ struct TinycastApp: App {
         CommandGroup(replacing: .appTermination) {
             Button("Close Window") {
                 // The chat window closes itself when it is in front; otherwise ⌘Q is Settings'.
+                #if AI_FEATURES
                 guard !AppCore.shared.aiChatCoordinator.closeWindowIfKey() else { return }
+                #endif
                 AppCore.shared.settingsCoordinator.closeSettings()
             }
             .keyboardShortcut("q")

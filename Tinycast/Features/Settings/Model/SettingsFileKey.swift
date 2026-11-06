@@ -43,6 +43,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case quicklinkConfirmsBeforeDelete = "quicklinks.confirmsBeforeDelete"
     case quicklinkCommands = "quicklinks.commands"
     case appleShortcutsEnabled = "appleShortcuts.enabled"
+    #if AI_FEATURES
     case aiEnabled = "ai.enabled"
     case aiWebSearch = "ai.webSearch"
     case aiChoices = "ai.choices"
@@ -56,6 +57,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case aiCommands = "ai.commands"
     case quickActionLanguage = "quickActions.targetLanguage"
     case quickActionCommands = "quickActions.commands"
+    #endif
     case dictationMode = "dictation.mode"
     case dictationShortcut = "dictation.shortcut"
     case dictationPlaysSounds = "dictation.playsSounds"

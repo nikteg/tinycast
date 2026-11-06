@@ -49,6 +49,11 @@ targets:
           - Features/Dictation/Helper
           - Features/FileSearch/Helper
           - Resources/EmojiKeywords
+          # The fork builds without AI. To bring it back, drop these three lines and add
+          # AI_FEATURES to SWIFT_ACTIVE_COMPILATION_CONDITIONS; see FORK.md.
+          - Features/AI
+          - Features/MCP
+          - Features/QuickActions
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
       - path: Tinycast/Resources/EmojiKeywords
         type: folder

@@ -15,8 +15,12 @@ struct SettingsDetailView: View {
             case .quicklinks: QuicklinksSettingsView()
             case .appleShortcuts: AppleShortcutsSettingsView()
             case .fallbacks: FallbacksSettingsView()
+            #if AI_FEATURES
             case .ai: AISettingsView()
             case .quickActions: QuickActionsSettingsView()
+            #else
+            case .ai, .quickActions: EmptyView()
+            #endif
             case .dictation: DictationSettingsView()
             case .fileSearch: FileSearchSettingsView()
             case .notes: NotesSettingsView()

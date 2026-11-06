@@ -68,5 +68,26 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
 - **No support asks.** The About card, the menu-bar and palette items, the launcher command and the
   monthly reminder are gone — the checkout behind them is upstream's. The code stays, unwired, so
   upstream syncs merge cleanly.
+- **No AI.** See [AI is left out](#ai-is-left-out).
 - The About footer keeps a short licence notice. The AGPL (§5(d)) requires one in the interface of
   any copy that is passed on, so it stays even though the rest of upstream's branding is removed.
+
+## AI is left out
+
+`Features/AI`, `Features/MCP` and `Features/QuickActions` are excluded from the app target in
+`project.yml`, so their ~26,000 lines are never compiled. Code outside them that reaches into them
+sits behind `#if AI_FEATURES`; everything else asks `CommandID.isBuilt` or `SettingsTab.isBuilt`,
+which hide the six AI commands and the AI and Quick Actions panes. `AppSettings` reads the AI
+switches as off, so a stored `true` from an older build cannot surface a fallback or Tab-to-ask.
+
+Nothing on disk is touched: chat history, `quick-actions.json`, the AI Keychain items and the
+preferences are still there for a build that has AI. A `settings.json` with `ai` or `quickActions`
+sections reports those keys as unknown. Hotkeys bound to custom Quick Actions are pruned at launch.
+
+To build with AI, delete the three `Features/…` lines from the app's `excludes` in `project.yml`,
+add `AI_FEATURES` to `SWIFT_ACTIVE_COMPILATION_CONDITIONS`, and run `xcodegen generate`.
+`TINYCAST_AI_FEATURES=1 ./Scripts/run-tests.sh` runs the suite as that build, AI-only harnesses
+included; without it the `ai`-marked harnesses are skipped.
+
+On an upstream sync, a conflict inside the three folders resolves to upstream's side. A new
+reference to an AI type from elsewhere fails the build here, and goes behind `#if AI_FEATURES`.

@@ -110,6 +110,7 @@ enum SettingsSearchCatalog {
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + pomodoro + emoji + ai + quickActions + dictation + extensions
         + permissions + backup + about
+        .filter(\.tab.isBuilt)
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),

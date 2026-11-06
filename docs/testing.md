@@ -25,10 +25,14 @@ end of this file is the sixth, judged by what you touched.
 ./Scripts/run-tests.sh calc-test    # just one, while iterating
 ```
 
+The fork builds without AI, so harnesses marked `ai` in `run-tests.sh` are skipped and AI sources
+are dropped from the rest. `TINYCAST_AI_FEATURES=1` runs the suite as a build with AI, compiling
+every harness with `-DAI_FEATURES`. See [FORK.md](../FORK.md#ai-is-left-out).
+
 `apple-intelligence-test` runs deterministic checks by default. Its real model generation is opt-in:
 
 ```sh
-TINYCAST_TEST_APPLE_INTELLIGENCE=1 ./Scripts/run-tests.sh apple-intelligence-test
+TINYCAST_AI_FEATURES=1 TINYCAST_TEST_APPLE_INTELLIGENCE=1 ./Scripts/run-tests.sh apple-intelligence-test
 ```
 
 The opt-in check still skips with a reason if the Mac cannot run the on-device model.

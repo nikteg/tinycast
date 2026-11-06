@@ -115,6 +115,7 @@ struct RootPaletteView: View {
             return ClipboardScreen(
                 store: store, core: core, vm: vm, openActions: openActions,
                 scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
+        #if AI_FEATURES
         case .ai:
             return AIScreen(
                 vm: vm, metrics: metrics, chat: quickAI,
@@ -124,6 +125,10 @@ struct RootPaletteView: View {
             return ChatHistoryScreen(
                 history: core.chatHistory, chat: quickAI, coordinator: core.quickAICoordinator,
                 vm: vm, openActions: openActions, metrics: metrics)
+        #else
+        case .ai, .aiHistory:
+            return UnbuiltScreen()
+        #endif
         case .dictionary:
             return DictionaryScreen(session: dictionary, core: core, vm: vm)
         case .typingPractice:
@@ -274,6 +279,7 @@ struct RootPaletteView: View {
             return headerMenu(fileSearchFilterContent, width: metrics.size.fileSearchFilterMenuWidth)
         case .emojiCategory:
             return headerMenu(emojiCategoryContent, width: metrics.size.emojiCategoryMenuWidth)
+        #if AI_FEATURES
         case .aiModel:
             return headerMenu(
                 AIModelMenu.models(coordinator: core.aiChatCoordinator, chat: quickAI),
@@ -289,6 +295,10 @@ struct RootPaletteView: View {
                 AIModelMenu.attachments(
                     coordinator: core.aiChatCoordinator, chat: quickAI),
                 width: metrics.size.menuWidth)
+        #else
+        case .aiModel, .aiReasoning, .aiAttachments:
+            return nil
+        #endif
         case .argumentOptions:
             guard let field = argumentOptionsField,
                 let popover = headerAccessory?.optionsMenu(field)
@@ -742,7 +752,9 @@ struct RootPaletteView: View {
                 Task { @MainActor in focusPendingArgument() }
             }
             .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
+            #if AI_FEATURES
             .onChange(of: quickAI.pendingAttachments.map(\.id)) { refreshAttachmentsMenu() }
+            #endif
     }
 
     private var compactCommands: [CommandID] {
@@ -833,6 +845,7 @@ struct RootPaletteView: View {
                     help: String(localized: "Filter by category  ⌘P"),
                     action: toggleEmojiCategory)
             }
+            #if AI_FEATURES
             if !isCollapsed, vm.mode == .ai {
                 headerGutter(width: metrics.spacing.md)
                 AIModelButton(
@@ -848,6 +861,7 @@ struct RootPaletteView: View {
                         action: toggleAIReasoning)
                 }
             }
+            #endif
             if !isCollapsed, let command = extensionCommandScreen,
                 let accessory = command.searchAccessory
             {
@@ -1110,7 +1124,11 @@ struct RootPaletteView: View {
         case .clipboardFilter: toggleClipboardFilter()
         case .fileSearchFilter: toggleFileSearchFilter()
         case .emojiCategory: toggleEmojiCategory()
+        #if AI_FEATURES
         case .aiModel: toggleAIModel()
+        #else
+        case .aiModel: return false
+        #endif
         case .ignored: return false
         }
         return true
@@ -1135,6 +1153,7 @@ struct RootPaletteView: View {
         open(.extensionAccessory, highlighting: accessory.index(of: value))
     }
 
+    #if AI_FEATURES
     private func toggleAIModel() {
         if openMenu == .aiModel {
             closeMenus()
@@ -1174,6 +1193,7 @@ struct RootPaletteView: View {
             highlighting: AIModelMenu.reasoningHighlight(
                 coordinator: core.aiChatCoordinator, chat: quickAI))
     }
+    #endif
 
     /// Every header menu states its own width, so resizing one never moves another.
     private func headerMenu(
@@ -1335,6 +1355,7 @@ struct RootPaletteView: View {
         syncMenuPanel(presenting: false)
     }
 
+    #if AI_FEATURES
     /// A row is addressed by index, so a file staged or dropped under the open menu re-lays it.
     private func refreshAttachmentsMenu() {
         guard openMenu == .aiAttachments else { return }
@@ -1345,6 +1366,7 @@ struct RootPaletteView: View {
         menuSelection = min(menuSelection, max(content.rowCount - 1, 0))
         syncMenuPanel(presenting: false)
     }
+    #endif
 
     private var menuCorner: MenuPanelCorner? {
         switch openMenu {
@@ -1457,7 +1479,11 @@ struct RootPaletteView: View {
             vm.resetNavigation()
         case .carryQuery(let mode): vm.pushCarryingQuery(mode: mode)
         case .freshScreen(let mode): vm.push(mode: mode)
+        #if AI_FEATURES
         case .ask: core.quickAICoordinator.ask(vm.query)
+        #else
+        case .ask: break
+        #endif
         }
     }
 
@@ -1657,3 +1683,14 @@ private struct HeaderBackButton: View {
         .help(help)
     }
 }
+
+#if !AI_FEATURES
+/// The palette's AI modes in a build without `AI_FEATURES`; nothing navigates to them.
+private struct UnbuiltScreen: PaletteScreen {
+    var rows: [AppEntry] { [] }
+    var primaryActionTitle: String { "" }
+    func activate(at selection: Int) {}
+    func secondary(at selection: Int) -> Bool { false }
+    func body(selection: Int, scroll: ScrollIntent) -> AnyView { AnyView(EmptyView()) }
+}
+#endif

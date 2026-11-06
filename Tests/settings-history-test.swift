@@ -113,10 +113,9 @@ struct SettingsHistoryTests {
 
     static func sidebarCoversEveryPane() {
         let grouped = SettingsSection.allCases.flatMap(\.tabs)
-        expect(
-            Set(grouped) == Set(SettingsTab.allCases),
-            "every pane appears in exactly one sidebar group")
-        expect(grouped.count == SettingsTab.allCases.count, "and none appears twice")
+        let built = SettingsTab.allCases.filter(\.isBuilt)
+        expect(Set(grouped) == Set(built), "every pane appears in exactly one sidebar group")
+        expect(grouped.count == built.count, "and none appears twice")
     }
 
     /// A selectable `List` flattens section and row IDs into one namespace.

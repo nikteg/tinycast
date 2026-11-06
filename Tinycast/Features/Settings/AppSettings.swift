@@ -847,15 +847,25 @@ final class AppSettings {
             || defaults.bool(forKey: Key.notesShowsFormattingBar.rawValue)
         notesShowsInMenuBar = defaults.bool(forKey: Key.notesShowsInMenuBar.rawValue)
         notesFolder = defaults.string(forKey: Key.notesFolder.rawValue)
+        // A build without AI_FEATURES has no AI code, so a stored `true` must not reach the UI.
+        #if AI_FEATURES
         aiEnabled = defaults.bool(forKey: Key.aiEnabled.rawValue)
         mcpEnabled = defaults.bool(forKey: Key.mcpEnabled.rawValue)
+        #else
+        aiEnabled = false
+        mcpEnabled = false
+        #endif
         customCommandsEnabled = defaults.bool(forKey: Key.customCommandsEnabled.rawValue)
         // These default on, so absence must be distinguished from a stored `false`.
         customCommandsShowInLauncher =
             defaults.object(forKey: Key.customCommandsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.customCommandsShowInLauncher.rawValue)
         snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
+        #if AI_FEATURES
         quickActionsEnabled = defaults.bool(forKey: Key.quickActionsEnabled.rawValue)
+        #else
+        quickActionsEnabled = false
+        #endif
         snippetsShowInLauncher =
             defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)

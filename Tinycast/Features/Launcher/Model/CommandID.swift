@@ -72,7 +72,7 @@ enum CommandID: String, CaseIterable, Sendable {
     static let compactBarOptions: [CommandID] =
         defaultCompactBarCommands + [
             .searchSnippets, .showNotes, .mySchedule, .quickAI
-        ]
+        ].filter(\.isBuilt)
 
     static let compactBarLimit = 4
 
@@ -95,10 +95,17 @@ enum CommandID: String, CaseIterable, Sendable {
         switch self {
         case .quickAI: return "Quick AI"
         case .aiChat: return "AI Chat"
+        #if AI_FEATURES
         case .fixGrammar: return BuiltInQuickAction.fixGrammar.titleResource
         case .rewrite: return BuiltInQuickAction.rewrite.titleResource
         case .translate: return BuiltInQuickAction.translate.titleResource
         case .summarize: return BuiltInQuickAction.summarize.titleResource
+        #else
+        case .fixGrammar: return "Fix Grammar"
+        case .rewrite: return "Rewrite"
+        case .translate: return "Translate"
+        case .summarize: return "Summarize"
+        #endif
         case .calculatorHistory: return "Calculator History"
         case .clipboardHistory: return "Clipboard History"
         case .pasteSequentially: return "Paste Sequentially"
@@ -162,10 +169,14 @@ enum CommandID: String, CaseIterable, Sendable {
         switch self {
         case .quickAI: return "sparkles"
         case .aiChat: return "bubble.left.and.bubble.right"
+        #if AI_FEATURES
         case .fixGrammar: return BuiltInQuickAction.fixGrammar.symbol
         case .rewrite: return BuiltInQuickAction.rewrite.symbol
         case .translate: return BuiltInQuickAction.translate.symbol
         case .summarize: return BuiltInQuickAction.summarize.symbol
+        #else
+        case .fixGrammar, .rewrite, .translate, .summarize: return "sparkles"
+        #endif
         case .calculatorHistory: return "plus.forwardslash.minus"
         case .clipboardHistory: return "doc.on.clipboard"
         case .pasteSequentially: return "list.bullet.clipboard"
@@ -224,6 +235,16 @@ enum CommandID: String, CaseIterable, Sendable {
         }
     }
 
+    /// False for the AI commands in a build without `AI_FEATURES`, which leaves their code out.
+    var isBuilt: Bool {
+        #if AI_FEATURES
+        true
+        #else
+        ![.quickAI, .aiChat, .fixGrammar, .rewrite, .translate, .summarize].contains(self)
+        #endif
+    }
+
+    #if AI_FEATURES
     /// Exhaustive, so a fifth shipped action cannot reach the launcher without a row here.
     init(_ action: BuiltInQuickAction) {
         switch action {
@@ -243,6 +264,7 @@ enum CommandID: String, CaseIterable, Sendable {
         default: return nil
         }
     }
+    #endif
 
     /// Queries this command wins until the user opens a rival more.
     var boostedTerms: Set<String> {
@@ -272,6 +294,6 @@ enum CommandID: String, CaseIterable, Sendable {
 
     /// A chord carries no query, and none should be able to terminate the app outright.
     var hotKeyAction: HotKeyAction? {
-        isQueryDriven || self == .quit ? nil : .command(self)
+        isQueryDriven || self == .quit || !isBuilt ? nil : .command(self)
     }
 }

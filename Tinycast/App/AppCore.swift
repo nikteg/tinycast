@@ -40,8 +40,10 @@ final class AppCore {
     /// The file's launcher items, kept to apply a waiting record once its app is installed.
     @ObservationIgnored private var launcherSettingsFile: LauncherSettingsFile?
     @ObservationIgnored private var appearanceObservation: NSKeyValueObservation?
+    #if AI_FEATURES
     /// The last verdict `trackChatRoute` acted on; nil until it has read one.
     @ObservationIgnored private var chatsRunTheirOwnTools: Bool?
+    #endif
     @ObservationIgnored private let iconStyle = IconStyleMonitor()
     let favorites = FavoritesStore()
     let visibility = VisibilityStore()
@@ -73,6 +75,7 @@ final class AppCore {
     let uninstall = UninstallSession()
     let notesStore: NotesStore
     let extensions: ExtensionManager
+    #if AI_FEATURES
     let chatHistory: ChatHistoryStore
     let aiChats: AIChatSurfacesState
     let aiSettings = AISettingsStore(
@@ -86,6 +89,7 @@ final class AppCore {
     let chatGPTSubscription = ChatGPTSubscriptionManager()
     let installedAI = InstalledAIManager()
     @ObservationIgnored private var appliedLaunchRevisions: [InstalledAIKind: Int] = [:]
+    #endif
 
     /// Set when a layout editor should open with Settings; the pane consumes it.
     var pendingWindowLayoutEdit: WindowLayoutEditRequest?
@@ -242,6 +246,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var forkUpdateCoordinator = ForkUpdateCoordinator(core: self)
     @ObservationIgnored private(set) lazy var supportCoordinator = SupportCoordinator(
         store: supportReminders, core: self)
+    #if AI_FEATURES
     @ObservationIgnored private(set) lazy var quickActionCoordinator = QuickActionCoordinator(
         settings: settings, store: quickActionSettings, customActions: customQuickActions,
         injector: textInjector, appIndex: appIndex, hotKeys: hotKeys, favorites: favorites,
@@ -257,6 +262,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var quickAICoordinator = QuickAICoordinator(
         chats: aiChats, settings: settings, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
+    #endif
     @ObservationIgnored private(set) lazy var deepLinkCoordinator = DeepLinkCoordinator(
         scheme: AppURLScheme.current, settings: settings, hotKeys: hotKeys,
         paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
@@ -282,12 +288,14 @@ final class AppCore {
     private init() {
         let launcherRanking = LauncherRankingStore()
         let settings = AppSettings()
-        let chatHistory = ChatHistoryStore(directory: AppPaths.applicationSupport())
         self.launcherRanking = launcherRanking
         self.settings = settings
+        #if AI_FEATURES
+        let chatHistory = ChatHistoryStore(directory: AppPaths.applicationSupport())
         self.chatHistory = chatHistory
-        supportReminders = SupportReminderStore(settings: settings)
         aiChats = AIChatSurfacesState(history: chatHistory)
+        #endif
+        supportReminders = SupportReminderStore(settings: settings)
         appIndex = AppIndex(ranking: launcherRanking, aliases: aliases)
         let clipboardManager = ClipboardManager(store: clipboardStore, settings: settings)
         self.clipboardManager = clipboardManager
@@ -327,6 +335,7 @@ final class AppCore {
             menuSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
             notesCoordinator.applyEnabled()
+            #if AI_FEATURES
             installedAI.launchSettings = { [aiSettings] in aiSettings.launch(for: $0) }
             chatGPTSubscription.launchSettings = { [aiSettings] in aiSettings.launch(for: .codex) }
             aiChatCoordinator.applyEnabled()
@@ -337,6 +346,7 @@ final class AppCore {
             // Before `hotKeys.start` even when off: the prune reads it.
             customQuickActions.load()
             quickActionCoordinator.applyEnabled()
+            #endif
             customCommands.onChange = { [weak self] _ in
                 self?.customCommandCoordinator.applyCustomCommandsPresence()
             }
@@ -417,9 +427,11 @@ final class AppCore {
             hotKeys.onOpenQuicklink = { [weak self] id in
                 self?.quicklinkCoordinator.openQuicklinkFromHotKey(id: id)
             }
+            #if AI_FEATURES
             hotKeys.onRunQuickAction = { [weak self] id in
                 self?.quickActionCoordinator.run(id: id)
             }
+            #endif
             hotKeys.onRunAppleShortcut = { [weak self] id in
                 self?.appleShortcutCoordinator.run(id: id)
             }
@@ -451,13 +463,18 @@ final class AppCore {
             SystemActionRunner.onAsyncFailure = { [weak self] id, failure in
                 self?.systemActionCoordinator.presentSystemActionFailure(id: id, failure: failure)
             }
+            #if AI_FEATURES
+            let quickActionIDs = Set(customQuickActions.actions.map(\.id))
+            #else
+            let quickActionIDs = Set<UUID>()
+            #endif
             hotKeys.start(
                 customCommandIDs: Set(customCommands.commands.map(\.id)),
                 quicklinkIDs: Set(quicklinks.quicklinks.map(\.id)),
                 windowLayoutIDs: Set(windowLayouts.layouts.map(\.id)),
                 windowRoomIDs: Set(rooms.rooms.map(\.id)),
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)),
-                quickActionIDs: Set(customQuickActions.actions.map(\.id)))
+                quickActionIDs: quickActionIDs)
             // After `hotKeys.start`: Secure Input equivalents are built from the loaded bindings.
             hyperKey.onProblem = { [weak self] in self?.showMessage($0, tone: .danger) }
             hyperKey.start()
@@ -517,7 +534,9 @@ final class AppCore {
 
     func handleReopen() {
         if settingsCoordinator.focusExisting() { return }
+        #if AI_FEATURES
         if aiChatCoordinator.focusExisting() { return }
+        #endif
         if onboardingCoordinator.focusExisting() { return }
         if supportCoordinator.focusExisting() { return }
         if customCommandCoordinator.focusOutputWindow() { return }
@@ -567,7 +586,12 @@ final class AppCore {
         case .quicklink(let id):
             return quicklinks.quicklink(id: id)?.name
         case .quickAction(let id):
+            #if AI_FEATURES
             return customQuickActions.action(id: id)?.name
+            #else
+            _ = id
+            return nil
+            #endif
         case .windowLayout(let id):
             return windowLayouts.layout(id: id)?.name
         case .windowRoom(let id):
@@ -646,15 +670,18 @@ final class AppCore {
         textInjector.prepareForTermination()
         snippetListener.stop()
         snippetsStore.stop()
+        #if AI_FEATURES
         aiChats.reset()
         chatGPTSubscription.stop()
         mcpOAuth.stop()
         mcp.stop()
         installedAI.stop()
+        #endif
         updateCoordinator.installStagedUpdate()
         if relaunchRequested { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
     }
 
+    #if AI_FEATURES
     /// Only the tool whose own path or variables changed is checked again; the rest keep running.
     private func applyInstalledLaunches() {
         let revisions = aiSettings.launchRevisions
@@ -705,6 +732,7 @@ final class AppCore {
             installedAI: installedAI,
             guardrails: .permissiveContentTransformations)
     }
+    #endif
 
     // MARK: - Feature switches
 
@@ -762,7 +790,9 @@ final class AppCore {
         track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
         track(
             { _ = $0.notesShowsInMenuBar }, reproject: { $0.notesCoordinator.applyMenuBarItem() })
+        #if AI_FEATURES
         track({ _ = $0.aiEnabled }, reproject: { $0.aiChatCoordinator.applyEnabled() })
+        #endif
         track(
             { _ = $0.dictationIdleRelease },
             reproject: {
@@ -777,6 +807,7 @@ final class AppCore {
                 $0.hotKeys.dictationHoldToTalk = $0.settings.dictationMode == .pushToTalk
                 $0.hotKeys.dictationEnabled = $0.settings.dictationEnabled
             })
+        #if AI_FEATURES
         track(
             {
                 _ = $0.aiEnabled
@@ -785,6 +816,7 @@ final class AppCore {
         track(
             { _ = $0.quickActionsEnabled },
             reproject: { $0.quickActionCoordinator.applyEnabled() })
+        #endif
         track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
         track(
             {
@@ -828,14 +860,18 @@ final class AppCore {
         track(
             { _ = $0.clipboardRetention },
             reproject: { $0.clipboardCoordinator.applyRetention($0.settings.clipboardRetention) })
+        #if AI_FEATURES
         track(aiSettings, { _ = $0.retention }, reproject: { $0.aiChatCoordinator.applyRetention() })
         track(aiSettings, { _ = $0.launchRevisions }, reproject: { $0.applyInstalledLaunches() })
+        #endif
         track(
             { _ = $0.extensionsShowInLauncher },
             reproject: { $0.extensionCoordinator.applyExtensionsLauncherPresence() })
         track({ _ = $0.snippetsFolder }, reproject: { $0.applySnippetsFolder() })
         track({ _ = $0.notesFolder }, reproject: { $0.applyNotesFolder() })
+        #if AI_FEATURES
         trackChatRoute()
+        #endif
     }
 
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
@@ -900,6 +936,7 @@ final class AppCore {
         }
     }
 
+    #if AI_FEATURES
     /// A chat route that runs its own MCP client decides which servers Tinycast runs itself.
     private func trackChatRoute() {
         let runsOwnTools = withObservationTracking {
@@ -912,6 +949,7 @@ final class AppCore {
         guard let previous = chatsRunTheirOwnTools, previous != runsOwnTools else { return }
         mcpCoordinator.applyEnabled()
     }
+    #endif
 
     /// Without a Hyper key the chord means nothing, so a literal ⌃⌥⌘ combo is left as recorded.
     private func applyHyperChord() {
@@ -951,10 +989,15 @@ final class AppCore {
         let shortcuts = HotKeySettingsFile(hotKeys: hotKeys)
         let launcher = LauncherSettingsFile(
             appIndex: appIndex, aliases: aliases, visibility: visibility, shortcuts: shortcuts)
+        #if AI_FEATURES
+        let (ai, quickActions) = (aiSettings, quickActionSettings)
+        #else
+        let (ai, quickActions): (AISettingsBinding, QuickActionSettingsBinding) = ((), ())
+        #endif
         let file = SettingsFileRepository(
             fileURL: AppPaths.settingsFile(),
             bindings: SettingsFileSchema.bindings(
-                settings: settings, ai: aiSettings, quickActions: quickActionSettings,
+                settings: settings, ai: ai, quickActions: quickActions,
                 shortcuts: shortcuts, launcher: launcher,
                 windowManagement: WindowManagementSettingsFile(
                     sizes: customWindowSizes, layouts: windowLayouts, rooms: rooms, aliases: aliases,

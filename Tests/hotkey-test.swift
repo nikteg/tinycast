@@ -346,18 +346,18 @@ struct DoubleTapDetectorTests {
             HotKeyAction.systemAction(id: .toggleMicrophoneMute).defaultsKey
                 != HotKeyAction.systemAction(id: .toggleMute).defaultsKey,
             "microphone and output mute can have independent hotkeys")
-        let unbindable = Set(CommandID.allCases.filter { $0.hotKeyAction == nil })
+        let unbindable = Set(CommandID.allCases.filter { $0.isBuilt && $0.hotKeyAction == nil })
         expect(
             unbindable == [.openInBrowser, .runShellCommand, .quit],
             "only the query-driven pair and Quit are unbindable — got \(unbindable.map(\.name))")
         expect(
-            CommandID.allCases.allSatisfy {
+            CommandID.allCases.filter(\.isBuilt).allSatisfy {
                 unbindable.contains($0) || $0.hotKeyAction == .command($0)
             },
             "every other command binds to its own action, so every row gets a recorder")
 
         // Keyed on the raw value, not the position, so reordering the enum cannot move a binding.
-        for id in CommandID.allCases where !unbindable.contains(id) {
+        for id in CommandID.allCases where id.isBuilt && !unbindable.contains(id) {
             expect(
                 id.hotKeyAction?.defaultsKey == "hotkey.\(id.rawValue)",
                 "\(id.name) persists under hotkey.\(id.rawValue)")
@@ -369,6 +369,7 @@ struct DoubleTapDetectorTests {
             HotKeyAction.builtInActions.contains(.togglePalette),
             "the launcher toggle is bindable without a command row of its own")
 
+        #if AI_FEATURES
         // Every action reaches the launcher as well as a shortcut; `CommandID.init` is exhaustive.
         expect(
             BuiltInQuickAction.allCases.allSatisfy { CommandID($0).name == $0.title },
@@ -376,6 +377,11 @@ struct DoubleTapDetectorTests {
         expect(
             Set(BuiltInQuickAction.allCases.map(CommandID.init)).count == BuiltInQuickAction.allCases.count,
             "no two Quick Actions share a launcher command")
+        #else
+        expect(
+            !HotKeyAction.builtInActions.contains(.command(.quickAI)),
+            "a build without AI offers no AI command a shortcut")
+        #endif
         expect(
             Set(HotKeyAction.builtInActions.map(\.defaultsKey)).count
                 == HotKeyAction.builtInActions.count,

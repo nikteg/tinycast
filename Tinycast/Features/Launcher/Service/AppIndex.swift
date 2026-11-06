@@ -203,7 +203,11 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case .customCommand: return CustomCommand.sfSymbol
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
         case .quickAction:
+            #if AI_FEATURES
             return CommandCatalog.command(for: self)?.sfSymbol ?? CustomQuickAction.sfSymbol
+            #else
+            return CommandCatalog.command(for: self)?.sfSymbol ?? "sparkles"
+            #endif
         case .systemAction: return SystemActionCatalog.action(forEntryID: id)?.sfSymbol ?? "questionmark"
         case .windowCommand:
             return WindowCommandCatalog.command(forEntryID: id)?.sfSymbol
@@ -255,12 +259,14 @@ extension AppEntry {
             bundleID: nil, kind: .windowCommand)
     }
 
+    #if AI_FEATURES
     init(_ action: CustomQuickAction) {
         self.init(
             id: action.entryID, name: action.name,
             url: URL(string: "tinycast://quick-action/" + action.id.uuidString)!,
             bundleID: nil, kind: .quickAction, symbolName: action.iconSymbol)
     }
+    #endif
 
     init(_ command: CustomCommand) {
         self.init(
@@ -450,6 +456,7 @@ final class AppIndex {
         publishEntries()
     }
 
+    #if AI_FEATURES
     /// Replaces the custom Quick Action slice, which shares its section with the shipped four.
     func setCustomQuickActions(_ actions: [CustomQuickAction]) {
         let entries = actions.sorted(by: CustomQuickAction.precedes).map(AppEntry.init)
@@ -457,6 +464,7 @@ final class AppIndex {
         customQuickActionEntries = entries
         publishEntries()
     }
+    #endif
 
     /// Replaces the quicklink slice; a toggle can't split its entries from their section.
     func setQuicklinks(_ quicklinks: [Quicklink]) {

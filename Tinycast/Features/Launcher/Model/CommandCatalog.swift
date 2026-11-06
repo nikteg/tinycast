@@ -4,7 +4,7 @@ enum CommandCatalog {
     /// Sorted by name for the `AppIndex` invariant; the URL is a placeholder.
     nonisolated static let all: [AppEntry] =
         CommandID.allCases
-        .filter { !$0.isQueryDriven }
+        .filter { !$0.isQueryDriven && $0.isBuilt }
         .map { makeEntry($0) }
         .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
@@ -82,6 +82,10 @@ extension CommandID {
         }
 
     var entryKind: AppEntry.Kind {
+        #if AI_FEATURES
         builtInQuickAction == nil ? .command : .quickAction
+        #else
+        .command
+        #endif
     }
 }

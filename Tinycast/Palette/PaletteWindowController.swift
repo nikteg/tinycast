@@ -140,12 +140,16 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     /// Read once here: ⌘V is a keystroke path, and both routes want the same answer.
     private func attachPastedFile() -> Bool {
+        #if AI_FEATURES
         let files = PasteboardFiles.urls(on: .general)
         switch core.palette.mode {
         case .ai: return core.quickAICoordinator.attachPastedFile(files: files)
         case .launcher: return core.quickAICoordinator.attachPastedFileFromLauncher(files: files)
         default: return false
         }
+        #else
+        return false
+        #endif
     }
 
     func hide(restoreFocus: Bool) {
@@ -388,9 +392,11 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
                 core.extensionCoordinator.exitExtensionScreen()
                 return true
             }
+            #if AI_FEATURES
             if core.palette.mode == .ai, core.quickAICoordinator.removeLastAttachment() {
                 return true
             }
+            #endif
             if core.palette.pop() { return true }
             guard core.palette.mode != .launcher else { return false }
             core.palette.prepare(mode: .launcher)

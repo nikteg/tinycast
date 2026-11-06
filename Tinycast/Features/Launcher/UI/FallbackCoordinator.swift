@@ -42,7 +42,11 @@ final class FallbackCoordinator {
 
     func run(_ fallback: Fallback, query: String) {
         switch fallback {
+        #if AI_FEATURES
         case .builtin(.quickAI): core.quickAICoordinator.ask(query)
+        #else
+        case .builtin(.quickAI): break
+        #endif
         case .builtin(.searchFiles): core.fileSearchCoordinator.show(query: query)
         case .builtin(.runShellCommand): core.customCommandCoordinator.runShellCommand(query)
         case .builtin(.define): core.dictionaryCoordinator.show(term: query)

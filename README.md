@@ -38,11 +38,13 @@ ask for upstream features.
   `main` and, when there are new commits, tells you the command to rebuild.
 - **No support asks.** Upstream's tip jar, reminders and social links are gone. The About page links
   here and shows the commit each build came from.
+- **No AI.** AI chat, Quick AI, Quick Actions and MCP are left out of the build entirely. A build
+  flag brings them back; see [FORK.md](FORK.md#ai-is-left-out).
 
 Everything else is upstream Tinycast: app launcher, global and per-app hotkeys, file search,
 clipboard history, calculator, quicklinks, Apple Shortcuts, snippets, custom commands, window
-management, system actions, calendar and meetings, notes, emoji picker, opt-in AI chat and Quick
-Actions, Raycast extensions, and backup/import. SwiftUI and AppKit, zero third-party dependencies, no
+management, system actions, calendar and meetings, notes, emoji picker, dictation, Raycast
+extensions, and backup/import. SwiftUI and AppKit, zero third-party dependencies, no
 telemetry.
 
 ## Install

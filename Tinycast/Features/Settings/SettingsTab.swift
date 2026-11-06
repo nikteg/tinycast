@@ -6,8 +6,17 @@ enum SettingsTab: CaseIterable, Identifiable {
     var id: Self { self }
 
     init?(slug: String) {
-        guard let tab = Self.allCases.first(where: { $0.slug == slug }) else { return nil }
+        guard let tab = Self.allCases.first(where: { $0.slug == slug && $0.isBuilt }) else { return nil }
         self = tab
+    }
+
+    /// False for the AI panes in a build without `AI_FEATURES`, which leaves their code out.
+    var isBuilt: Bool {
+        #if AI_FEATURES
+        true
+        #else
+        self != .ai && self != .quickActions
+        #endif
     }
 
     /// `tinycast://settings/<slug>`; spelled out, so renaming a case never breaks a saved link.
@@ -127,7 +136,7 @@ enum SettingsSection: CaseIterable, Identifiable {
             return [
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
                 .calendar, .pomodoro, .emoji, .dictation, .ai, .quickActions, .extensions
-            ]
+            ].filter(\.isBuilt)
         case .advanced: return [.backup, .about]
         }
     }

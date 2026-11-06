@@ -16,7 +16,7 @@ extension HotKeyAction {
             self = .windowLayout(id: id)
         } else if let id = Room.id(fromEntryID: entryID) {
             self = .windowRoom(id: id)
-        } else if let id = CustomQuickAction.id(fromEntryID: entryID) {
+        } else if let id = Self.quickActionID(fromEntryID: entryID) {
             self = .quickAction(id: id)
         } else if let id = CustomCommand.id(fromEntryID: entryID) {
             self = .customCommand(id: id)
@@ -40,12 +40,28 @@ extension HotKeyAction {
         case .customWindowSize(let id): CustomWindowSize.entryIDPrefix + id.uuidString.lowercased()
         case .windowLayout(let id): WindowLayout.entryIDPrefix + id.uuidString.lowercased()
         case .windowRoom(let id): Room.entryIDPrefix + id.uuidString.lowercased()
-        case .quickAction(let id): CustomQuickAction.entryIDPrefix + id.uuidString.lowercased()
+        case .quickAction(let id): Self.quickActionEntryID(id)
         case .customCommand(let id): CustomCommand.entryIDPrefix + id.uuidString.lowercased()
         case .quicklink(let id): Quicklink.entryIDPrefix + id.uuidString.lowercased()
         case .appleShortcut(let id): AppleShortcut.entryID(for: id)
         case .snippet(let id): StoredSnippet.entryIDPrefix + id
         case .togglePalette, .dictation, .app, .settingsPane, .extensionCommand: nil
         }
+    }
+
+    private static func quickActionID(fromEntryID entryID: String) -> UUID? {
+        #if AI_FEATURES
+        CustomQuickAction.id(fromEntryID: entryID)
+        #else
+        nil
+        #endif
+    }
+
+    private static func quickActionEntryID(_ id: UUID) -> String? {
+        #if AI_FEATURES
+        CustomQuickAction.entryIDPrefix + id.uuidString.lowercased()
+        #else
+        nil
+        #endif
     }
 }

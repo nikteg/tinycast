@@ -89,8 +89,10 @@ final class LauncherCoordinator {
                 runCommand(command)
                 return
             }
+            #if AI_FEATURES
             guard let id = CustomQuickAction.id(fromEntryID: app.id) else { return }
             core.quickActionCoordinator.run(id: id)
+            #endif
             return
         }
         if app.kind == .customCommand {
@@ -165,6 +167,7 @@ final class LauncherCoordinator {
     /// The one funnel a built-in command runs through, from a palette row or its global shortcut.
     func runCommand(_ id: CommandID) {
         switch id {
+        #if AI_FEATURES
         case .quickAI:
             core.quickAICoordinator.show()
         case .aiChat:
@@ -178,6 +181,10 @@ final class LauncherCoordinator {
             core.quickActionCoordinator.run(.translate)
         case .summarize:
             core.quickActionCoordinator.run(.summarize)
+        #else
+        case .quickAI, .aiChat, .fixGrammar, .rewrite, .translate, .summarize:
+            break
+        #endif
         case .calculatorHistory:
             paletteCoordinator.togglePalette(mode: .calculatorHistory)
         case .clipboardHistory:

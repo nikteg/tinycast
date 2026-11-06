@@ -394,6 +394,7 @@ extension View {
             .environment(core.customWindowSizes)
             .environment(core.customWindowSizeCoordinator)
             .environment(core.calendarStore)
+            #if AI_FEATURES
             .environment(core.aiSettings)
             .environment(core.mcpSettings)
             .environment(core.mcpCoordinator)
@@ -401,6 +402,7 @@ extension View {
             .environment(core.customQuickActions)
             .environment(core.chatGPTSubscription)
             .environment(core.installedAI)
+            #endif
             .scrollContentBackground(.hidden)
             .motionScope()
     }

@@ -76,20 +76,37 @@ if [ "$emit_db" -eq 0 ]; then
     rm -f "$BIN"/*.failed "$BIN"/*.running
 fi
 
+# The fork builds without AI; TINYCAST_AI_FEATURES=1 tests the build that has it. See FORK.md.
+AI_FLAG=""
+[ "${TINYCAST_AI_FEATURES:-}" = "1" ] && AI_FLAG="-DAI_FEATURES"
+
 # `slow` dispatches in the first wave; `index` only claims editor flags for a hand-run harness.
 run() {
-    local opt=-Onone pri=1 index_only=0 queue="$QUEUE"
+    local opt=-Onone pri=1 index_only=0 ai_only=0 queue="$QUEUE"
     while :; do
         case "$1" in
             slow)  pri=0; shift;;
             exclusive) queue="$EXCLUSIVE_QUEUE"; shift;;
             -O)    opt=-O; shift;;
             index) index_only=1; shift;;
+            ai)    ai_only=1; shift;;
             *)     break;;
         esac
     done
     local name=$1
     shift
+    if [ "$ai_only" -eq 1 ] && [ -z "$AI_FLAG" ]; then return 0; fi
+    # Without AI_FEATURES the AI folders are not part of the app, so no harness compiles them.
+    if [ -z "$AI_FLAG" ]; then
+        local kept=()
+        for source in "$@"; do
+            case "$source" in Tinycast/Features/AI/*|Tinycast/Features/MCP/*|Tinycast/Features/QuickActions/*) ;;
+                *) kept+=("$source");; esac
+        done
+        set -- ${kept[@]+"${kept[@]}"}
+    else
+        set -- "$AI_FLAG" "$@"
+    fi
     if [ -n "$only" ] && [ "$name" != "$only" ]; then return 0; fi
     if [ "$index_only" -eq 1 ] && [ "$emit_db" -eq 0 ]; then return 0; fi
     ran=$((ran + 1))
@@ -368,7 +385,7 @@ run dictionary-test        Tinycast/Features/Dictionary/Model/DictionaryEntry.sw
                            Tinycast/Features/Dictionary/Model/DictionaryMarkup.swift
 run dictation-test         Tinycast/Features/Dictation/Model/DictationModel.swift Tinycast/Features/Dictation/Model/DictationIdleRelease.swift Tinycast/Features/Dictation/Model/DictationLanguage.swift Tinycast/Features/Dictation/Model/DictationTextFormatter.swift
 run dictation-cue-test     Tinycast/Features/Dictation/Service/DictationCueRunner.swift
-run dictation-field-test   Tinycast/Features/Dictation/Model/DictationModel.swift \
+run ai dictation-field-test   Tinycast/Features/Dictation/Model/DictationModel.swift \
                            Tinycast/Features/Dictation/Model/DictationAudioChunks.swift \
                            Tinycast/Features/Dictation/Model/DictationMode.swift \
                            Tinycast/Features/Dictation/Model/DictationDestination.swift \
@@ -810,19 +827,19 @@ run color-picker-test      Tinycast/Features/ColorPicker/Model/*.swift \
 run process-test           Tinycast/Features/Processes/Model/*.swift
 run power-mode-test        Tinycast/Features/PowerMode/Model/*.swift
 run uptime-test            Tinycast/Features/Uptime/Model/*.swift
-run ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
+run ai ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Features/AI/Settings/AISettingsStore.swift \
                            Tinycast/Features/AI/Service/CodexAppServerClient.swift \
                            Tinycast/Features/AI/Service/InstalledAIProbe.swift \
                            Tinycast/Platform/ExecutableLocator.swift Tinycast/Platform/ProcessExit.swift
-run opencode-mcp-test      Tinycast/Features/AI/Model/*.swift \
+run ai opencode-mcp-test      Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Platform/ExecutableLocator.swift Tinycast/Platform/ProcessExit.swift \
                            Tinycast/Features/AI/Service/AIProvider.swift \
                            Tinycast/Features/AI/Service/AIToolLoopProvider.swift \
                            Tinycast/Features/AI/Service/InstalledCLIProvider.swift \
                            Tinycast/Features/AI/Service/OpenCodeMCPBridge.swift
-run ai-chat-test           Tinycast/Features/AI/Model/AIRequest.swift \
+run ai ai-chat-test           Tinycast/Features/AI/Model/AIRequest.swift \
                            Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/AIConversationOpenPolicy.swift \
                            Tinycast/Features/AI/Model/AppleIntelligence.swift \
@@ -849,7 +866,7 @@ run ai-chat-test           Tinycast/Features/AI/Model/AIRequest.swift \
                            Tinycast/Features/AI/UI/AIChatState.swift \
                            Tinycast/Features/AI/UI/AIChatSurfacesState.swift \
                            Tinycast/Features/AI/UI/ChatFindState.swift
-run ai-responses-test      Tinycast/Features/AI/Model/AIConnection.swift \
+run ai ai-responses-test      Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/AppleIntelligence.swift \
                            Tinycast/Features/AI/Model/AIModelDiscovery.swift \
                            Tinycast/Features/AI/Model/AIRequest.swift \
@@ -862,7 +879,7 @@ run ai-responses-test      Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/AI/Service/AIProvider.swift \
                            Tinycast/Features/AI/Service/AIToolLoopProvider.swift
-run chat-markdown-test     Tinycast/Platform/Appearance.swift \
+run ai chat-markdown-test     Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/Theme.swift \
                            Tinycast/DesignSystem/InterfaceMetrics.swift \
                            Tinycast/Features/Settings/InterfaceSize.swift \
@@ -888,10 +905,10 @@ run chat-markdown-test     Tinycast/Platform/Appearance.swift \
                            Tinycast/Features/AI/UI/MathBox.swift \
                            Tinycast/Features/AI/UI/MathFont.swift \
                            Tinycast/Features/AI/UI/MathLayoutEngine.swift
-run syntax-highlight-test  Tinycast/Features/AI/Model/SyntaxGrammar.swift \
+run ai syntax-highlight-test  Tinycast/Features/AI/Model/SyntaxGrammar.swift \
                            Tinycast/Features/AI/Model/SyntaxHighlighter.swift \
                            Tinycast/Features/AI/Model/SyntaxStructuredLexers.swift
-run mcp-test               Tinycast/Features/Settings/AppSettingsKey.swift \
+run ai mcp-test               Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/AppleIntelligence.swift \
                            Tinycast/Features/AI/Model/AITool.swift \
@@ -899,9 +916,9 @@ run mcp-test               Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Settings/MCPSettingsStore.swift
-run -O text-diff-test      Tinycast/Features/QuickActions/Model/TextDiffEngine.swift
-run index text-diff-performance Tinycast/Features/QuickActions/Model/TextDiffEngine.swift
-run quick-action-test      Tinycast/Features/Settings/AppSettingsKey.swift \
+run ai -O text-diff-test      Tinycast/Features/QuickActions/Model/TextDiffEngine.swift
+run ai index text-diff-performance Tinycast/Features/QuickActions/Model/TextDiffEngine.swift
+run ai quick-action-test      Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/AppleIntelligence.swift \
                            Tinycast/Features/AI/Model/ChatGPTSubscription.swift \
@@ -915,11 +932,11 @@ run quick-action-test      Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/QuickActions/Model/QuickActionSettings.swift \
                            Tinycast/Features/QuickActions/Settings/QuickActionSettingsStore.swift \
                            Tinycast/Platform/LocalizedResource.swift
-run apple-intelligence-test Tinycast/Features/Settings/AppSettingsKey.swift \
+run ai apple-intelligence-test Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Model/*.swift \
                            Tinycast/Features/AI/Service/AIProvider.swift \
                            Tinycast/Features/AI/Service/AppleIntelligenceProvider.swift
-run mcp-oauth-test         Tinycast/Platform/ExecutableLocator.swift \
+run ai mcp-oauth-test         Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Platform/ProcessExit.swift \
                            Tinycast/Platform/KeychainSecretStore.swift \
                            Tinycast/Features/Settings/AppSettingsKey.swift \
@@ -935,7 +952,7 @@ run mcp-oauth-test         Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
-run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
+run ai slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Platform/ProcessExit.swift \
                            Tinycast/Platform/KeychainSecretStore.swift \
                            Tinycast/Features/Settings/AppSettingsKey.swift \

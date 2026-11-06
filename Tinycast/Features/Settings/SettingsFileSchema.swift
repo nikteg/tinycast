@@ -1,10 +1,19 @@
 import Foundation
 
 /// Where each settings.json key lives; exhaustive, so a new key fails to build until it is bound.
+#if AI_FEATURES
+typealias AISettingsBinding = AISettingsStore
+typealias QuickActionSettingsBinding = QuickActionSettingsStore
+#else
+/// Stands in for the AI stores a build without `AI_FEATURES` leaves out; no key binds to it.
+typealias AISettingsBinding = Void
+typealias QuickActionSettingsBinding = Void
+#endif
+
 @MainActor
 enum SettingsFileSchema {
     static func bindings(
-        settings: AppSettings, ai: AISettingsStore, quickActions: QuickActionSettingsStore,
+        settings: AppSettings, ai: AISettingsBinding, quickActions: QuickActionSettingsBinding,
         shortcuts: HotKeySettingsFile, launcher: LauncherSettingsFile,
         windowManagement: WindowManagementSettingsFile
     ) -> [SettingsFileBinding] {
@@ -16,8 +25,8 @@ enum SettingsFileSchema {
     }
 
     private static func binding(
-        for key: SettingsFileKey, settings: AppSettings, ai: AISettingsStore,
-        quickActions: QuickActionSettingsStore, shortcuts: HotKeySettingsFile,
+        for key: SettingsFileKey, settings: AppSettings, ai: AISettingsBinding,
+        quickActions: QuickActionSettingsBinding, shortcuts: HotKeySettingsFile,
         launcher: LauncherSettingsFile, windowManagement: WindowManagementSettingsFile
     ) -> SettingsFileBinding {
         func bind<Root: AnyObject, Value: SettingsFileValue>(
@@ -74,6 +83,7 @@ enum SettingsFileSchema {
         case .quicklinkConfirmsBeforeDelete: return bind(settings, \.quicklinkConfirmsBeforeDelete)
         case .quicklinkCommands: return launcher.commandsBinding(for: key, owner: .quicklinks)
         case .appleShortcutsEnabled: return bind(settings, \.appleShortcutsEnabled)
+        #if AI_FEATURES
         case .aiEnabled: return bind(settings, \.aiEnabled)
         case .aiWebSearch: return bind(ai, \.webSearchEnabled)
         case .aiChoices: return bind(ai, \.choicesEnabled)
@@ -87,6 +97,7 @@ enum SettingsFileSchema {
         case .aiCommands: return launcher.commandsBinding(for: key, owner: .ai)
         case .quickActionLanguage: return bind(quickActions, \.settings.targetLanguage)
         case .quickActionCommands: return launcher.commandsBinding(for: key, owner: .quickActions)
+        #endif
         case .fileSearchEnabled: return bind(settings, \.fileSearchEnabled)
         case .fileSearchScopes: return bind(settings, \.fileSearchScopes)
         case .fileSearchIgnorePatterns: return bind(settings, \.fileSearchIgnorePatterns)
@@ -218,6 +229,7 @@ extension ClipboardRetention: SettingsFileToken {
     }
 }
 
+#if AI_FEATURES
 extension AIRetention: SettingsFileToken {
     var settingsToken: SettingsFileJSON {
         switch self {
@@ -261,6 +273,7 @@ extension AIToolRounds: SettingsFileToken {
         }
     }
 }
+#endif
 
 extension CalendarLauncherLimit: SettingsFileToken {
     var settingsToken: SettingsFileJSON {
