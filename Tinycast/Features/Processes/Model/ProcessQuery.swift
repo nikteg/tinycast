@@ -20,7 +20,7 @@ enum ProcessQuery {
         guard !needle.isEmpty else { return ports }
         return ports.filter { port in
             String(port.port).hasPrefix(needle) || String(port.pid) == needle
-                || port.command.localizedCaseInsensitiveContains(needle)
+                || port.name.localizedCaseInsensitiveContains(needle)
         }
     }
 

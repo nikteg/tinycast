@@ -639,6 +639,7 @@
 		A90D2DC5B401D0F7E5BD3235 /* DictionaryMarkup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F46DBF8D46FE35742C4D36 /* DictionaryMarkup.swift */; };
 		A91D2FD273D527F1098FB393 /* DictationMel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE6A34F46D8970090CA0489 /* DictationMel.swift */; };
 		A959101548828D7C4BEAFC13 /* UptimeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4257E594C51BDA23C51E66C5 /* UptimeProvider.swift */; };
+		AA179BD76436FC5C01DF757A /* ProcessListHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296422BE455F653044F59658 /* ProcessListHost.swift */; };
 		AA52F01D3A91899CCEAF7851 /* ColorCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D763A801000029271E4CADA4 /* ColorCard.swift */; };
 		AAFD2C9276D38719E85B675F /* Memo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB76FDBFE1E306C2A5B1A29B /* Memo.swift */; };
 		AB500AC3DEBFF6EB1CE42812 /* DialogController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94507F8F095D3EBD1A9B3007 /* DialogController.swift */; };
@@ -691,6 +692,7 @@
 		B991F9A86813AB800DA4EB94 /* TypingResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249467655B1143BACEB2800C /* TypingResultView.swift */; };
 		B9FA85B5C59D27C229BF0A3E /* TypingCorpus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2307E8A875F219986F453AB /* TypingCorpus.swift */; };
 		BA10D7A81D1933CAA1D57414 /* CountdownTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02E8D16D2C7CD5894F2A3F17 /* CountdownTimer.swift */; };
+		BA2664E3B9601B12279CBBD2 /* RowFollowing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2899A6C75A966E58149A1E9 /* RowFollowing.swift */; };
 		BA81211D8B660F2DD03A20EA /* GlassEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6EA47F0085375A3A621F5E /* GlassEffectView.swift */; };
 		BA81E5DE22F944417665D90D /* FeatureCommandsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F082FD6A3AC234F43735715D /* FeatureCommandsSection.swift */; };
 		BA835EDCB6D17DE6BFE2D39E /* DialogTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7A18CE243DB037673EB63 /* DialogTextField.swift */; };
@@ -1150,6 +1152,7 @@
 		28D1A69B721AA863AFFE176F /* FileSearchScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchScope.swift; sourceTree = "<group>"; };
 		2902B904C7BD2FC23856EDB9 /* MenuBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItem.swift; sourceTree = "<group>"; };
 		29443BE49D292CC1837C17C5 /* TimersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimersScreen.swift; sourceTree = "<group>"; };
+		296422BE455F653044F59658 /* ProcessListHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessListHost.swift; sourceTree = "<group>"; };
 		29662AF059B431E72891C46C /* TypingWords.generated.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TypingWords.generated.json; sourceTree = "<group>"; };
 		296F67E23BF91CFBC6D66385 /* SystemActionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActionCoordinator.swift; sourceTree = "<group>"; };
 		29A8B82DCB1B7D131BF0908A /* PaletteDropGuideController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteDropGuideController.swift; sourceTree = "<group>"; };
@@ -1911,6 +1914,7 @@
 		F082FD6A3AC234F43735715D /* FeatureCommandsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureCommandsSection.swift; sourceTree = "<group>"; };
 		F097C9983DF27A99694C8BC5 /* Zlib.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zlib.swift; sourceTree = "<group>"; };
 		F1D473F2DE4AC66AB01B0667 /* TypingTestConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingTestConfig.swift; sourceTree = "<group>"; };
+		F2899A6C75A966E58149A1E9 /* RowFollowing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowFollowing.swift; sourceTree = "<group>"; };
 		F2960A04D852678D8E23895C /* AIModelOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelOption.swift; sourceTree = "<group>"; };
 		F31FB61E6F6969851D3874FA /* CodexMCPLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexMCPLaunch.swift; sourceTree = "<group>"; };
 		F3CE1A1626264322E8A1192E /* SettingsWindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowChrome.swift; sourceTree = "<group>"; };
@@ -2036,6 +2040,7 @@
 				3935BBAC987C8F8238417AB4 /* ProcessCoordinator.swift */,
 				DE345BA605B27DB9B4F44775 /* ProcessesScreen.swift */,
 				2E1908D20B01E0C77084B86C /* ProcessIcon.swift */,
+				296422BE455F653044F59658 /* ProcessListHost.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -4192,6 +4197,7 @@
 			children = (
 				0D5D6EAEFFD1117D8A73DAFB /* ListeningPort.swift */,
 				50E1D86E5C7E567F734768CB /* ProcessQuery.swift */,
+				F2899A6C75A966E58149A1E9 /* RowFollowing.swift */,
 				E5049186A700C672F23AF70B /* RunningProcess.swift */,
 			);
 			path = Model;
@@ -5309,6 +5315,7 @@
 				A12D1812719C13AB22DFA5F5 /* ProcessCoordinator.swift in Sources */,
 				5CB834F0059FC98C26E7A515 /* ProcessExit.swift in Sources */,
 				794B1FE5850F1B023788EE84 /* ProcessIcon.swift in Sources */,
+				AA179BD76436FC5C01DF757A /* ProcessListHost.swift in Sources */,
 				FF35920A29298F51D7C7AF63 /* ProcessQuery.swift in Sources */,
 				0F2A277BAFAB1E08B25B03E9 /* ProcessSession.swift in Sources */,
 				F4E20DE9B56B621903E8B990 /* ProcessSignalRunner.swift in Sources */,
@@ -5390,6 +5397,7 @@
 				80E0A46F1C287491BC187322 /* RoomsSection.swift in Sources */,
 				47E13BC63F8BE11EDF25EA82 /* RootPaletteView.swift in Sources */,
 				B076DE322213FBD43C04B886 /* RowClick.swift in Sources */,
+				BA2664E3B9601B12279CBBD2 /* RowFollowing.swift in Sources */,
 				9A80D2997DCF835AF225A586 /* RunningAppsMonitor.swift in Sources */,
 				3584AA983631370EDCDA5BB8 /* RunningProcess.swift in Sources */,
 				30C5B58F3876A5B85BFBBDDF /* ScheduleScreen.swift in Sources */,

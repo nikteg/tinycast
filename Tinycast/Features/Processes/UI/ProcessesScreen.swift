@@ -5,7 +5,7 @@ struct ProcessesScreen: PaletteScreen {
     struct Row: Identifiable {
         let process: RunningProcess
         let ports: [Int]
-        var id: String { String(process.pid) }
+        var id: String { process.id }
     }
 
     let session: ProcessSession
@@ -31,7 +31,7 @@ struct ProcessesScreen: PaletteScreen {
     func actions(at selection: Int) -> PopoverMenuContent? {
         guard let process = process(at: selection) else { return nil }
         return PopoverMenuContent(
-            header: "\(process.name) · PID \(process.pid)",
+            header: "\(process.name) – PID \(process.pid)",
             items: [
                 PopoverMenuItem(title: "Quit Process", systemImage: "xmark.circle", shortcut: "↵") {
                     quit(process, force: false)
@@ -47,17 +47,17 @@ struct ProcessesScreen: PaletteScreen {
                     coordinator.copy(process.path)
                 },
                 PopoverMenuItem(title: "Show in Finder", systemImage: "folder") {
-                    coordinator.showInFinder(process)
+                    coordinator.showInFinder(path: process.bundlePath ?? process.path)
                 },
                 PopoverMenuItem(
                     title: "Reload", systemImage: "arrow.clockwise", startsSection: true,
                     shortcut: "⌘R"
-                ) { coordinator.load() }
+                ) { coordinator.reload() }
             ])
     }
 
     private func quit(_ process: RunningProcess, force: Bool) {
-        coordinator.quit(pid: process.pid, name: process.name, force: force)
+        coordinator.quit(process.identity, name: process.name, force: force)
     }
 
     func activate(at selection: Int) {
@@ -73,14 +73,21 @@ struct ProcessesScreen: PaletteScreen {
 
     func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool {
         guard shortcut == .restart else { return false }
-        coordinator.load()
+        coordinator.reload()
         return true
     }
 
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
         let rows = rows
+        return AnyView(
+            ProcessListHost(
+                session: session, vm: vm, rowIDs: rows.map(\.id),
+                content: list(rows, selection: selection, scroll: scroll)))
+    }
+
+    private func list(_ rows: [Row], selection: Int, scroll: ScrollIntent) -> AnyView {
         guard !rows.isEmpty else {
-            let text = session.isLoadingProcesses ? "Reading processes…" : "No matching processes"
+            let text = session.hasSwept ? "No matching processes" : "Reading processes…"
             return AnyView(EmptyResults(text: text))
         }
         return AnyView(
@@ -94,18 +101,27 @@ struct ProcessesScreen: PaletteScreen {
                 ) {
                     ProcessIcon(bundlePath: row.process.bundlePath)
                 } accessory: {
-                    Text(Self.usage(row.process)).monospacedDigit()
+                    ProcessUsage(process: row.process)
                 }
             })
     }
 
     private static func subtitle(_ row: Row) -> String {
         let ports = row.ports.map { ":\($0)" }.joined(separator: ", ")
-        return ports.isEmpty ? "PID \(row.process.pid)" : "PID \(row.process.pid) · \(ports)"
+        return ports.isEmpty ? "PID \(row.process.pid)" : "PID \(row.process.pid) – \(ports)"
     }
+}
 
-    private static func usage(_ process: RunningProcess) -> String {
-        let memory = ByteCountFormatter.string(fromByteCount: process.memoryBytes, countStyle: .memory)
-        return "\(process.cpu.formatted(.number.precision(.fractionLength(1))))% · \(memory)"
+/// CPU and memory side by side, in tabular figures so a live refresh doesn't jiggle the column.
+private struct ProcessUsage: View {
+    @Environment(\.metrics) private var metrics
+    let process: RunningProcess
+
+    var body: some View {
+        HStack(spacing: metrics.spacing.md) {
+            Text("\(process.cpu.formatted(.number.precision(.fractionLength(1))))%")
+            Text(ByteCountFormatter.string(fromByteCount: process.memoryBytes, countStyle: .memory))
+        }
+        .monospacedDigit()
     }
 }

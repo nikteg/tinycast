@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// Listening Ports: every TCP port the reader's processes listen on, and who holds it.
+/// Listening Ports: every TCP port on the Mac and who holds it; only the reader's own can be quit.
 struct PortsScreen: PaletteScreen {
     struct Row: Identifiable {
         let port: ListeningPort
-        let bundlePath: String?
         var id: String { port.id }
     }
 
@@ -15,12 +14,7 @@ struct PortsScreen: PaletteScreen {
     private var coordinator: ProcessCoordinator { core.processCoordinator }
 
     var rows: [Row] {
-        let bundles = Dictionary(
-            session.processes.compactMap { process in process.bundlePath.map { (process.pid, $0) } },
-            uniquingKeysWith: { first, _ in first })
-        return ProcessQuery.filter(session.ports, query: vm.query).map {
-            Row(port: $0, bundlePath: bundles[$0.pid])
-        }
+        ProcessQuery.filter(session.ports, query: vm.query).map(Row.init)
     }
 
     var primaryActionTitle: String { "Quit Process" }
@@ -30,36 +24,54 @@ struct PortsScreen: PaletteScreen {
         return rows.indices.contains(selection) ? rows[selection].port : nil
     }
 
+    func isPrimaryActionEnabled(at selection: Int) -> Bool {
+        port(at: selection)?.identity != nil
+    }
+
     func actions(at selection: Int) -> PopoverMenuContent? {
         guard let port = port(at: selection) else { return nil }
-        return PopoverMenuContent(
-            header: ":\(port.port) · \(port.command)",
-            items: [
+        var items: [PopoverMenuItem] = []
+        if let identity = port.identity {
+            items += [
                 PopoverMenuItem(title: "Quit Process", systemImage: "xmark.circle", shortcut: "↵") {
-                    quit(port, force: false)
+                    coordinator.quit(identity, name: port.name, force: false)
                 },
                 PopoverMenuItem(
                     title: "Force Quit Process", systemImage: "xmark.octagon", shortcut: "⌘↵",
                     isDestructive: true
-                ) { quit(port, force: true) },
-                PopoverMenuItem(
-                    title: "Open in Browser", systemImage: "globe", startsSection: true
-                ) { coordinator.openInBrowser(port) },
-                PopoverMenuItem(title: "Copy Port", systemImage: "doc.on.doc") {
-                    coordinator.copy(String(port.port))
-                },
-                PopoverMenuItem(title: "Copy PID", systemImage: "doc.on.doc") {
-                    coordinator.copy(String(port.pid))
-                },
-                PopoverMenuItem(
-                    title: "Reload", systemImage: "arrow.clockwise", startsSection: true,
-                    shortcut: "⌘R"
-                ) { coordinator.load() }
-            ])
+                ) { coordinator.quit(identity, name: port.name, force: true) }
+            ]
+        }
+        items += [
+            PopoverMenuItem(
+                title: "Open in Browser", systemImage: "globe", startsSection: !items.isEmpty
+            ) { coordinator.openInBrowser(port) },
+            PopoverMenuItem(title: "Copy Port", systemImage: "doc.on.doc") {
+                coordinator.copy(String(port.port))
+            },
+            PopoverMenuItem(title: "Copy PID", systemImage: "doc.on.doc") {
+                coordinator.copy(String(port.pid))
+            }
+        ]
+        if let path = port.path {
+            items.append(
+                PopoverMenuItem(title: "Show in Finder", systemImage: "folder") {
+                    coordinator.showInFinder(path: port.bundlePath ?? path)
+                })
+        }
+        items.append(
+            PopoverMenuItem(
+                title: "Reload", systemImage: "arrow.clockwise", startsSection: true, shortcut: "⌘R"
+            ) { coordinator.reload() })
+        return PopoverMenuContent(header: ":\(port.port) – \(port.name)", items: items)
     }
 
     private func quit(_ port: ListeningPort, force: Bool) {
-        coordinator.quit(pid: port.pid, name: port.command, force: force)
+        guard let identity = port.identity else {
+            coordinator.explainUnreachable(port)
+            return
+        }
+        coordinator.quit(identity, name: port.name, force: force)
     }
 
     func activate(at selection: Int) {
@@ -75,14 +87,21 @@ struct PortsScreen: PaletteScreen {
 
     func perform(_ shortcut: PaletteShortcut, at selection: Int) -> Bool {
         guard shortcut == .restart else { return false }
-        coordinator.load()
+        coordinator.reload()
         return true
     }
 
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
         let rows = rows
+        return AnyView(
+            ProcessListHost(
+                session: session, vm: vm, rowIDs: rows.map(\.id),
+                content: list(rows, selection: selection, scroll: scroll)))
+    }
+
+    private func list(_ rows: [Row], selection: Int, scroll: ScrollIntent) -> AnyView {
         guard !rows.isEmpty else {
-            let text = session.isLoadingPorts ? "Reading ports…" : "No listening ports found"
+            let text = session.hasSwept ? "No listening ports found" : "Reading ports…"
             return AnyView(EmptyResults(text: text))
         }
         return AnyView(
@@ -92,13 +111,21 @@ struct PortsScreen: PaletteScreen {
                 scroll: scroll, onActivate: { quit($0.port, force: false) }
             ) { row, selected in
                 PaletteResultRow(
-                    title: ":\(row.port.port)",
-                    subtitle: "\(row.port.command) · PID \(row.port.pid)", selected: selected
+                    title: ":\(row.port.port)", subtitle: Self.subtitle(row.port), selected: selected
                 ) {
-                    ProcessIcon(bundlePath: row.bundlePath)
+                    ProcessIcon(bundlePath: row.port.bundlePath)
                 } accessory: {
                     Text(row.port.address == "*" ? "All interfaces" : row.port.address)
                 }
             })
+    }
+
+    private static func subtitle(_ port: ListeningPort) -> String {
+        let holder = "\(port.name) – PID \(port.pid)"
+        switch port.holder {
+        case .reader: return holder
+        case .otherUser(let owner): return "\(holder) – \(owner)"
+        case .unknown: return "\(holder) – exited"
+        }
     }
 }

@@ -1,6 +1,6 @@
 import AppKit
 
-/// Kill Process and Listening Ports: sweep on open, then quit or force-quit what is chosen.
+/// Kill Process and Listening Ports: a clean sweep on open, then quit or force-quit what is chosen.
 @MainActor
 final class ProcessCoordinator {
     private let session: ProcessSession
@@ -14,6 +14,9 @@ final class ProcessCoordinator {
         self.core = core
     }
 
+    /// Tinycast leaves itself off the list: quitting it from its own palette is Quit Tinycast.
+    static var ownPID: Int32 { ProcessInfo.processInfo.processIdentifier }
+
     func showProcesses() {
         paletteCoordinator.togglePalette(mode: .processes)
     }
@@ -22,19 +25,40 @@ final class ProcessCoordinator {
         paletteCoordinator.togglePalette(mode: .ports)
     }
 
-    /// Tinycast leaves itself off the list: quitting it from its own palette is Quit Tinycast.
-    func load() {
-        session.load(excluding: ProcessInfo.processInfo.processIdentifier)
+    func screenOpening() {
+        session.reset()
+    }
+
+    func reload() {
+        session.reload()
     }
 
     /// SIGTERM lets the process clean up; force sends SIGKILL, which it cannot refuse.
-    func quit(pid: Int32, name: String, force: Bool) {
-        if let failure = ProcessSignalRunner.send(force ? SIGKILL : SIGTERM, to: pid) {
-            core.showMessage("Couldn't quit \(name): \(failure)", tone: .danger)
+    func quit(_ process: ProcessIdentity, name: String, force: Bool) {
+        switch ProcessSignalRunner.send(force ? SIGKILL : SIGTERM, to: process) {
+        case .delivered:
+            core.showMessage(force ? "Force quit \(name)" : "Quit \(name)")
+        case .exited:
+            core.showMessage("\(name) had already quit")
+        case .refused(let reason):
+            core.showMessage("Couldn't quit \(name): \(reason)", tone: .danger)
             return
         }
-        session.forget(pid)
-        core.showMessage(force ? "Force quit \(name)" : "Quit \(name)")
+        session.forget(process.pid)
+        session.sweepSoon()
+    }
+
+    /// Another account's listener is shown so the port list is whole, but a signal can't reach it.
+    func explainUnreachable(_ port: ListeningPort) {
+        switch port.holder {
+        case .otherUser(let owner):
+            core.showMessage("\(port.name) belongs to \(owner), so Tinycast can't quit it", tone: .danger)
+        case .unknown:
+            core.showMessage("The process holding :\(port.port) has already quit")
+            session.sweepSoon()
+        case .reader:
+            break
+        }
     }
 
     func copy(_ text: String) {
@@ -43,9 +67,9 @@ final class ProcessCoordinator {
         core.showMessage("Copied \(text)")
     }
 
-    func showInFinder(_ process: RunningProcess) {
+    func showInFinder(path: String) {
         paletteCoordinator.hidePalette(restoreFocus: false)
-        AppLauncher.showInFinder(URL(fileURLWithPath: process.bundlePath ?? process.path))
+        AppLauncher.showInFinder(URL(fileURLWithPath: path))
     }
 
     func openInBrowser(_ port: ListeningPort) {
