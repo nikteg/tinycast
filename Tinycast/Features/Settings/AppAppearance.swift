@@ -5,7 +5,6 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
     case system
     case light
     case dark
-    case darkGray
 
     var id: String { rawValue }
 
@@ -14,7 +13,6 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
         case .system: String(localized: "System")
         case .light: String(localized: "Light")
         case .dark: String(localized: "Dark")
-        case .darkGray: String(localized: "Dark Gray")
         }
     }
 
@@ -23,7 +21,7 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .system: nil
         case .light: NSAppearance(named: .aqua)
-        case .dark, .darkGray: NSAppearance(named: .darkAqua)
+        case .dark: NSAppearance(named: .darkAqua)
         }
     }
 }
