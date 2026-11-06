@@ -8,7 +8,7 @@ struct AboutView: View {
         let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
         let commit = (Bundle.main.infoDictionary?["TinycastSourceCommit"] as? String ?? "").prefix(7)
-        return "Version \(short) (\(build))" + (commit.isEmpty ? "" : " · \(commit)")
+        return String(localized: "Version \(short) (\(build))") + (commit.isEmpty ? "" : " - \(commit)")
     }
 
     // Cached, and read from the bundle: the app icon is generic until LaunchServices registers.
@@ -99,7 +99,6 @@ struct AboutView: View {
     }
 }
 
-/// One external destination in the About "Links" card.
 private struct AboutLink: Identifiable {
     enum Glyph {
         case symbol(String)
@@ -129,7 +128,6 @@ private struct AboutLink: Identifiable {
     ]
 }
 
-/// A row in the About "Links" card: glyph, title, destination and the arrow.
 private struct AboutLinkRow: View {
     let link: AboutLink
 

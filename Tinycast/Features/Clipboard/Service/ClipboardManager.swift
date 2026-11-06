@@ -5,9 +5,6 @@ final class ClipboardManager {
     /// Marker we attach to the pasteboard when *we* write to it, so polling ignores our own pastes.
     static let internalType = NSPasteboard.PasteboardType("com.tinycast.internal")
 
-    /// Longest text captured; bigger copies are skipped, truncation losing the tail.
-    static let maxTextLength = 32_000
-
     /// Markers put on secret copies by password managers, browsers and the OS.
     static let sensitiveTypes: Set<NSPasteboard.PasteboardType> = [
         .init("org.nspasteboard.ConcealedType"),
@@ -40,7 +37,6 @@ final class ClipboardManager {
         startPolling()
     }
 
-    /// Turning the feature off: the poller, the observers and the drain all go with it.
     func stop() {
         isCapturing = false
         sessionTokens = []
@@ -160,7 +156,7 @@ final class ClipboardManager {
         if let text = pb.string(forType: .string),
             !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         {
-            guard text.count <= Self.maxTextLength else { return }
+            guard text.count <= ClipboardStore.maxTextLength else { return }
             store.addText(text, sourceBundleID: sourceBundleID)
             return
         }
@@ -168,6 +164,7 @@ final class ClipboardManager {
         if let type = pb.availableType(from: [.png, .tiff]), let data = pb.data(forType: type) {
             let isPNG = type == .png
             let store = store
+            let capture = store.captureGeneration
             // A big TIFF→PNG re-encode can take 100ms+, so keep the poll off that path.
             Task.detached(priority: .utility) {
                 let png =
@@ -175,8 +172,26 @@ final class ClipboardManager {
                     ? data
                     : NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:])
                 guard let png else { return }
-                await store.addImage(png, sourceBundleID: sourceBundleID)
+                await store.addImage(png, sourceBundleID: sourceBundleID, capture: capture)
             }
+            return
         }
+
+        guard let text = Self.plainText(fromRichTextOn: pb),
+            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            text.count <= ClipboardStore.maxTextLength
+        else { return }
+        store.addText(text, sourceBundleID: sourceBundleID)
+    }
+
+    private static let maxImportedHTMLBytes = 256 * 1024
+
+    static func plainText(fromRichTextOn pasteboard: NSPasteboard) -> String? {
+        if let rtf = pasteboard.data(forType: .rtf) {
+            return NSAttributedString(rtf: rtf, documentAttributes: nil)?.string
+        }
+        guard let html = pasteboard.data(forType: .html), html.count <= maxImportedHTMLBytes
+        else { return nil }
+        return NSAttributedString(html: html, documentAttributes: nil)?.string
     }
 }

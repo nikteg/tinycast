@@ -1,7 +1,6 @@
 import Foundation
 
 enum CalcDateTime {
-    /// Which occurrence of a bare, recurring date/time a phrase resolves to.
     private enum MomentBias { case future, past, nearest }
 
     static func evaluate(
@@ -10,7 +9,7 @@ enum CalcDateTime {
         -> CalcResult?
     {
         let echo = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lowered = echo.lowercased()
+        let lowered = fromNow(withoutApostrophes(echo.lowercased()))
         guard !lowered.isEmpty else { return nil }
         if factSubjects.contains(lowered.prefix { $0 != " " }),
             let fact = dateFact(normalized(lowered), echo: echo, now: now, calendar: calendar)
@@ -32,7 +31,7 @@ enum CalcDateTime {
             signals.contains(.at) || signals.contains(.nextOrLast)
             || (hasDigit && signals.contains(.dayName) && namesADay(lowered))
             || (hasDigit && signals.contains(.holiday) && CalcHoliday.parse(lowered)?.year != nil)
-            || CalcTimestamp.looksLikeISO(lowered)
+            || CalcTimestamp.looksLikeISO(lowered) || namesBoundary(lowered)
         let hasRange = signals.contains(.range) && signals.contains(.moment)
         guard hasUntil || hasSince || hasArith || hasFromAgo || hasIn || hasRange || isBareMoment || hasTimestamp
         else {
@@ -112,6 +111,48 @@ enum CalcDateTime {
         }.joined(separator: " ")
     }
 
+    /// `in 3 days` is `3 days from now`; an `in` that leads anything but a duration is left alone.
+    private static func fromNow(_ query: String) -> String {
+        guard query.hasPrefix("in ") else { return query }
+        let rest = String(query.dropFirst(3))
+        return parseDurations(rest) == nil ? query : rest + " from now"
+    }
+
+    private struct Boundary {
+        let atEnd: Bool
+        let offset: Int
+        let period: Calendar.Component
+    }
+
+    /// `end of month`, `start of next year`: a period's edge names one day, so it needs no other signal.
+    private static func boundary(_ query: String) -> Boundary? {
+        var words = query.split(separator: " ").map(String.init)
+        words.removeAll { $0 == "the" }
+        let heads = ["end": true, "start": false, "beginning": false]
+        guard words.count >= 3, let atEnd = heads[words[0]], words[1] == "of" else { return nil }
+        words.removeFirst(2)
+        let offsets = ["next": 1, "last": -1, "this": 0]
+        let offset = offsets[words[0]] ?? 0
+        if offsets[words[0]] != nil { words.removeFirst() }
+        guard words.count == 1, let period = ["month": Calendar.Component.month, "year": .year][words[0]]
+        else { return nil }
+        return Boundary(atEnd: atEnd, offset: offset, period: period)
+    }
+
+    private static func namesBoundary(_ query: String) -> Bool {
+        (query.hasPrefix("end ") || query.hasPrefix("start ") || query.hasPrefix("beginning "))
+            && boundary(query) != nil
+    }
+
+    private static func boundaryDate(_ edge: Boundary, now: Date, calendar: Calendar) -> Date? {
+        guard
+            let anchor = calendar.date(
+                byAdding: edge.period, value: edge.offset, to: calendar.startOfDay(for: now)),
+            let interval = calendar.dateInterval(of: edge.period, for: anchor)
+        else { return nil }
+        return edge.atEnd ? shift(interval.end, days: -1, calendar: calendar) : interval.start
+    }
+
     private static func keywordSignals(_ query: String) -> Signals {
         var signals: Signals = []
         let words = query.split(whereSeparator: \.isWhitespace)
@@ -127,6 +168,8 @@ enum CalcDateTime {
             case "to", "through", "between": if !isLast { signals.insert(.range) }
             case "in": if !isFirst, !isLast { signals.insert(.inWord) }
             case "at": if !isFirst, !isLast { signals.insert(.at) }
+            case "new":
+                if index + 1 < words.count, words[index + 1].hasPrefix("year") { signals.insert(.moment) }
             case "next", "last": if isFirst { signals.insert(.nextOrLast) }
             case "unix", "timestamp": signals.formUnion([.timestamp, .moment])
             default: break
@@ -147,7 +190,8 @@ enum CalcDateTime {
                 if weekdayByName[name] != nil { signals.insert(.moment) }
                 if CalcHoliday.keywords.contains(name) { signals.formUnion([.holiday, .moment]) }
                 switch name {
-                case "now", "today", "tomorrow", "yesterday", "noon", "midnight", "am", "pm":
+                case "now", "today", "tomorrow", "yesterday", "noon", "midnight", "am", "pm", "christmas",
+                    "halloween", "valentines":
                     signals.insert(.moment)
                 default: break
                 }
@@ -294,8 +338,9 @@ enum CalcDateTime {
         _ query: String, connector: String, past: Bool, echo: String, now: Date, calendar: Calendar
     ) -> CalcResult? {
         let parts = query.components(separatedBy: connector)
+        let bias: MomentBias = past ? .past : .future
         if parts.count == 2, parts[0] == "time",
-            let moment = parseMoment(parts[1], now: now, calendar: calendar, bias: past ? .past : .future)
+            let moment = parseMoment(parts[1], now: now, calendar: calendar, bias: bias)
         {
             let text = CalcFormatter.timespan(abs(moment.date.timeIntervalSince(now)))
             let (start, end) = past ? (moment.date, now) : (now, moment.date)
@@ -305,7 +350,8 @@ enum CalcDateTime {
                 payload: .value(display: text, copyText: text))
         }
         guard parts.count == 2, let unit = durationUnit(parts[0]),
-            let moment = parseMoment(parts[1], now: now, calendar: calendar, bias: past ? .past : .future)
+            let moment = parseMoment(parts[1], now: now, calendar: calendar, bias: bias)
+                ?? dayAndMonth(parts[1], now: now, calendar: calendar, bias: bias)
         else { return nil }
         let reference = unit.subDay ? now : calendar.startOfDay(for: now)
         let target = unit.subDay ? moment.date : calendar.startOfDay(for: moment.date)
@@ -648,6 +694,18 @@ enum CalcDateTime {
             targetBadge: weekdayName(middle, calendar: calendar), payload: .value(display: text, copyText: text))
     }
 
+    /// `29.10` and `29/10` after `until`: no decimal follows that word, so a lone pair is a date.
+    private static func dayAndMonth(
+        _ phrase: String, now: Date, calendar: Calendar, bias: MomentBias
+    ) -> Moment? {
+        let text = phrase.hasSuffix(".") ? String(phrase.dropLast()) : phrase
+        let parts = text.split(separator: text.contains("/") ? "/" : ".", omittingEmptySubsequences: false)
+        guard parts.count == 2, parts.allSatisfy({ (1...2).contains($0.count) }),
+            let day = Int(parts[0]), let month = Int(parts[1])
+        else { return nil }
+        return monthDayMoment(month: month, day: day, now: now, calendar: calendar, bias: bias)
+    }
+
     // MARK: - Grammars C & D: moment ± duration / moment − moment
 
     private static func parseArithmetic(
@@ -800,8 +858,9 @@ enum CalcDateTime {
             else { return nil }
             let text = String(value)
             return CalcResult(
-                expression: echo, sourceBadge: "Date",
-                targetBadge: scale == 1 ? "Unix Seconds" : "Unix Milliseconds",
+                expression: echo, sourceBadge: String(localized: "Date"),
+                targetBadge: scale == 1
+                    ? String(localized: "Unix Seconds") : String(localized: "Unix Milliseconds"),
                 payload: .value(display: CalcFormatter.grouped(text), copyText: text))
         }
         let source = query.hasSuffix(" to date") ? String(query.dropLast(8)) : query
@@ -811,6 +870,31 @@ enum CalcDateTime {
         return bareMoment(source, echo: echo, now: now, calendar: calendar)
     }
 
+    /// Dates that fall on one day everywhere; floating holidays differ by country and are left out.
+    private static let fixedDays: [String: (month: Int, day: Int)] = [
+        "christmas": (12, 25), "christmas day": (12, 25), "christmas eve": (12, 24),
+        "new year": (1, 1), "new years": (1, 1), "new years day": (1, 1), "new years eve": (12, 31),
+        "halloween": (10, 31), "valentines": (2, 14), "valentines day": (2, 14)
+    ]
+
+    private static func withoutApostrophes(_ phrase: String) -> String {
+        phrase.unicodeScalars.contains { $0 == "'" || $0 == "’" }
+            ? phrase.replacingOccurrences(of: "['’]", with: "", options: .regularExpression) : phrase
+    }
+
+    /// The day a phrase names, nearest occurrence first, for a caller that only wants the date.
+    static func day(_ phrase: String, now: Date, calendar: Calendar) -> Date? {
+        parseMoment(phrase, now: now, calendar: calendar, bias: .nearest)?.date
+    }
+
+    /// A day and a clock read on `calendar`'s own zone, for a caller that converts the instant.
+    static func wallMoment(_ phrase: String, now: Date, calendar: Calendar) -> Date? {
+        guard let moment = parseMoment(phrase, now: now, calendar: calendar, bias: .nearest),
+            moment.hasTime
+        else { return nil }
+        return moment.date
+    }
+
     private static func parseMoment(
         _ phrase: String, now: Date, calendar: Calendar, bias: MomentBias = .future
     ) -> Moment? {
@@ -818,6 +902,12 @@ enum CalcDateTime {
             return Moment(date: date, hasTime: true)
         }
         if let holiday = holidayMoment(phrase, now: now, calendar: calendar, bias: bias) { return holiday }
+        if let edge = boundary(phrase) {
+            return boundaryDate(edge, now: now, calendar: calendar).map { Moment(date: $0, hasTime: false) }
+        }
+        if let day = fixedDays[withoutApostrophes(phrase)] {
+            return monthDayMoment(month: day.month, day: day.day, now: now, calendar: calendar, bias: bias)
+        }
         if !phrase.contains(" at "), let spelled = spelledAt(phrase) {
             return parseMoment(spelled, now: now, calendar: calendar, bias: bias)
         }
@@ -826,6 +916,7 @@ enum CalcDateTime {
             let atoms = atomize(dayPhrase)
             let recurring =
                 weekdayByName[dayPhrase] != nil || monthByName[dayPhrase] != nil
+                || fixedDays[withoutApostrophes(dayPhrase)] != nil
                 || (atoms.count == 2 && namesADay(dayPhrase))
                 || (atoms.count == 1 && dayPhrase.split(separator: "/").count == 2)
                 || CalcHoliday.parse(dayPhrase).map { $0.year == nil } == true
@@ -946,22 +1037,24 @@ enum CalcDateTime {
     private static func parsePair(
         _ a: String, _ b: String, now: Date, calendar: Calendar, bias: MomentBias
     ) -> Moment? {
-        // number + month  /  month + number  →  a day in that month
         if let month = monthByName[b], let day = ordinalDay(a) {
             return monthDayMoment(month: month, day: day, now: now, calendar: calendar, bias: bias)
         }
         if let month = monthByName[a], let day = ordinalDay(b) {
             return monthDayMoment(month: month, day: day, now: now, calendar: calendar, bias: bias)
         }
-        // clock + am/pm  →  a time today (or tomorrow if it has passed)
         if b == "am" || b == "pm", let (hour, minute) = parseClock(a) {
             guard (1...12).contains(hour) else { return nil }
             let adjusted = b == "pm" ? (hour % 12) + 12 : hour % 12
             return clockMoment(
                 hour: adjusted, minute: minute, now: now, calendar: calendar, bias: bias)
         }
-        // next / last  +  weekday or month
         if a == "next" || a == "last" {
+            if let period = ["week": Calendar.Component.weekOfYear, "month": .month, "year": .year][b] {
+                return calendar.date(
+                    byAdding: period, value: a == "next" ? 1 : -1, to: calendar.startOfDay(for: now)
+                ).map { Moment(date: $0, hasTime: false) }
+            }
             if let weekday = weekdayByName[b] {
                 return nextWeekday(
                     weekday, offsetToFuture: a == "next", past: a == "last", now: now,
@@ -1171,7 +1264,7 @@ enum CalcDateTime {
         -> String
     {
         let day = dateString(date, now: now, calendar: calendar)
-        return hasTime ? "\(day) at \(timeString(date, calendar: calendar))" : day
+        return hasTime ? String(localized: "\(day) at \(timeString(date, calendar: calendar))") : day
     }
 
     /// The weekday moves to the badge, so an answered moment leads with the date itself.
@@ -1182,7 +1275,7 @@ enum CalcDateTime {
             calendar.component(.year, from: date) == calendar.component(.year, from: now)
         let day = format(
             date, calendar: calendar, pattern: sameYear ? "d MMMM" : "d MMMM, yyyy")
-        return hasTime ? "\(day) at \(timeString(date, calendar: calendar))" : day
+        return hasTime ? String(localized: "\(day) at \(timeString(date, calendar: calendar))") : day
     }
 
     private static func dateString(_ date: Date, now: Date, calendar: Calendar) -> String {
@@ -1241,7 +1334,24 @@ enum CalcDateTime {
             }
         }
         flush()
-        return atoms
+        return foldOrdinals(atoms)
+    }
+
+    private static let ordinalSuffixes: Set<String> = ["st", "nd", "rd", "th"]
+
+    /// `the 29th of october` reads as `29 october`: the suffix, the `the` and the `of` say nothing.
+    private static func foldOrdinals(_ atoms: [String]) -> [String] {
+        var folded: [String] = []
+        folded.reserveCapacity(atoms.count)
+        for (index, atom) in atoms.enumerated() {
+            let next = index + 1 < atoms.count ? atoms[index + 1] : nil
+            let afterDay = folded.last.map { $0.allSatisfy(\.isNumber) } ?? false
+            if afterDay, ordinalSuffixes.contains(atom) { continue }
+            if afterDay, atom == "of", let next, monthByName[next] != nil { continue }
+            if atom == "the", let next, next.first?.isNumber == true { continue }
+            folded.append(atom)
+        }
+        return folded
     }
 
     /// A day number, with the ordinal dot German and Austrian dates write: `28. aug`.
@@ -1331,7 +1441,6 @@ enum CalcDateTime {
         "weekday", "weekdays"
     ]
 
-    /// Gregorian weekday numbers (Sunday = 1).
     private static let weekdayByName: [String: Int] = [
         "sunday": 1, "sun": 1, "monday": 2, "mon": 2, "tuesday": 3, "tue": 3, "tues": 3,
         "wednesday": 4, "wed": 4, "thursday": 5, "thu": 5, "thurs": 5, "friday": 6, "fri": 6,

@@ -9,16 +9,24 @@ enum CalcPercent {
             ?? parseAggregate(tokens, query: query) ?? parseRoundToNearest(tokens, query: query)
     }
 
+    /// The money a discount or tip phrase comes to, unrounded, for a caller that shares it out.
+    static func amount(_ tokens: [CalcToken]) -> Double? {
+        offAmount(tokens) ?? tipAmount(tokens)
+    }
+
     /// `<pct>% off <value>` → the value reduced by pct percent (`20% off 500` → 400).
     private static func parseOff(_ tokens: [CalcToken], query: String) -> CalcResult? {
+        offAmount(tokens).map { card(query, .number($0), target: String(localized: "Discounted")) }
+    }
+
+    private static func offAmount(_ tokens: [CalcToken]) -> Double? {
         guard let off = tokens.firstIndex(of: .ident("off")), off >= 2,
             tokens[off - 1] == .op(.percent),
             let pct = CalcExpressionParser.scalar(Array(tokens[0..<(off - 1)])),
             let base = CalcExpressionParser.scalar(Array(tokens[(off + 1)...]))
         else { return nil }
         let result = base * (1 - pct / 100)
-        guard result.isFinite else { return nil }
-        return card(query, .number(result), target: "Discounted")
+        return result.isFinite ? result : nil
     }
 
     /// `<x> as % of <y>` → x / y × 100, rendered as a percentage (`50 as % of 200` → 25%).
@@ -30,16 +38,16 @@ enum CalcPercent {
         else { return nil }
         let ratio = x / y * 100
         guard ratio.isFinite else { return nil }
-        return card(query, .number(ratio, suffix: "%"), target: "Percentage")
+        return card(query, .number(ratio, suffix: "%"), target: String(localized: "Percentage"))
     }
 
     private static func card(
-        _ query: String, _ payload: CalcResult.Payload, target: String = "Result",
+        _ query: String, _ payload: CalcResult.Payload, target: String = String(localized: "Result"),
         canChain: Bool = true
     ) -> CalcResult {
         CalcResult(
             expression: query.split(whereSeparator: \.isWhitespace).joined(separator: " "),
-            sourceBadge: "Expression",
+            sourceBadge: String(localized: "Expression"),
             targetBadge: target,
             payload: payload,
             canChain: canChain)
@@ -47,6 +55,10 @@ enum CalcPercent {
 
     /// The tip alone, not the total: it is the number the phrase asks for.
     private static func parseTip(_ tokens: [CalcToken], query: String) -> CalcResult? {
+        tipAmount(tokens).map { card(query, .number($0), target: String(localized: "Tip")) }
+    }
+
+    private static func tipAmount(_ tokens: [CalcToken]) -> Double? {
         guard let tip = tokens.firstIndex(of: .ident("tip")), tip >= 2,
             tip + 2 < tokens.count, tokens[tip - 1] == .op(.percent),
             tokens[tip + 1] == .ident("on") || tokens[tip + 1] == .ident("of"),
@@ -54,8 +66,7 @@ enum CalcPercent {
             let bill = CalcExpressionParser.scalar(Array(tokens[(tip + 2)...]))
         else { return nil }
         let amount = bill * pct / 100
-        guard amount.isFinite else { return nil }
-        return card(query, .number(amount), target: "Tip")
+        return amount.isFinite ? amount : nil
     }
 
     private static func parseWhatPercentOf(_ tokens: [CalcToken], query: String) -> CalcResult? {
@@ -68,7 +79,7 @@ enum CalcPercent {
         else { return nil }
         let ratio = x / y * 100
         guard ratio.isFinite else { return nil }
-        return card(query, .number(ratio, suffix: "%"), target: "Percentage")
+        return card(query, .number(ratio, suffix: "%"), target: String(localized: "Percentage"))
     }
 
     private static func parseIsPercentOfWhat(_ tokens: [CalcToken], query: String) -> CalcResult? {
@@ -81,7 +92,7 @@ enum CalcPercent {
         else { return nil }
         let whole = x / (pct / 100)
         guard whole.isFinite else { return nil }
-        return card(query, .number(whole), target: "Total")
+        return card(query, .number(whole), target: String(localized: "Total"))
     }
 
     /// Integers only, so the reduced pair stays exact.
@@ -95,7 +106,9 @@ enum CalcPercent {
         let divisor = greatestCommonDivisor(abs(a), abs(b))
         guard divisor > 0 else { return nil }
         let text = "\(CalcFormatter.display(a / divisor)) : \(CalcFormatter.display(b / divisor))"
-        return card(query, .value(display: text, copyText: text), target: "Ratio", canChain: false)
+        return card(
+            query, .value(display: text, copyText: text), target: String(localized: "Ratio"),
+            canChain: false)
     }
 
     private static func greatestCommonDivisor(_ a: Double, _ b: Double) -> Double {
@@ -124,7 +137,7 @@ enum CalcPercent {
         else { return nil }
         let result = (value / step).rounded() * step
         guard result.isFinite else { return nil }
-        return card(query, .number(result), target: "Rounded")
+        return card(query, .number(result), target: String(localized: "Rounded"))
     }
 
     /// The badge names which reduction ran, so `min` and `max` are told apart on the card.
@@ -134,13 +147,13 @@ enum CalcPercent {
     }
 
     private static let aggregates: [String: Aggregate] = [
-        "average": Aggregate(name: "Average") { $0.reduce(0, +) / Double($0.count) },
-        "avg": Aggregate(name: "Average") { $0.reduce(0, +) / Double($0.count) },
-        "mean": Aggregate(name: "Average") { $0.reduce(0, +) / Double($0.count) },
-        "sum": Aggregate(name: "Sum") { $0.reduce(0, +) },
-        "total": Aggregate(name: "Sum") { $0.reduce(0, +) },
-        "min": Aggregate(name: "Minimum") { $0.min() },
-        "max": Aggregate(name: "Maximum") { $0.max() }
+        "average": Aggregate(name: String(localized: "Average")) { $0.reduce(0, +) / Double($0.count) },
+        "avg": Aggregate(name: String(localized: "Average")) { $0.reduce(0, +) / Double($0.count) },
+        "mean": Aggregate(name: String(localized: "Average")) { $0.reduce(0, +) / Double($0.count) },
+        "sum": Aggregate(name: String(localized: "Sum")) { $0.reduce(0, +) },
+        "total": Aggregate(name: String(localized: "Sum")) { $0.reduce(0, +) },
+        "min": Aggregate(name: String(localized: "Minimum")) { $0.min() },
+        "max": Aggregate(name: String(localized: "Maximum")) { $0.max() }
     ]
 
     /// Each run is evaluated whole, so `sum of 2*3, 4` stays two operands.

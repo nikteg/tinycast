@@ -43,7 +43,6 @@ enum CalcTokenizer {
                         text.unicodeScalars.append(c)
                     } else if c == "," && functionDepth == nil && i + 1 < chars.count && isDigit(chars[i + 1])
                     {
-                        // grouping separator between digits — skip
                     } else if c == "." && !seenDot {
                         seenDot = true
                         text.unicodeScalars.append(c)
@@ -118,6 +117,13 @@ enum CalcTokenizer {
                     }
                     i += 1
                 }
+                if let previous = tokens.last, endsOperand(previous), mayBeWordOperator(text),
+                    let word = wordOperator(text.lowercased(), chars, after: i)
+                {
+                    tokens.append(.op(word.op))
+                    i = word.end
+                    continue
+                }
                 if let unit = compoundUnit(chars, after: i, prefix: text) {
                     tokens.append(.ident(unit.name))
                     i = unit.end
@@ -134,7 +140,6 @@ enum CalcTokenizer {
                 continue
             }
 
-            // "**" is the Python/JS/shell spelling of power, same operator as "^".
             if ch == "*", i + 1 < chars.count, chars[i + 1] == "*" {
                 tokens.append(.op(.power))
                 i += 2
@@ -229,6 +234,35 @@ enum CalcTokenizer {
             return false
         default:
             return true
+        }
+    }
+
+    /// Every spoken operator is three to ten letters and starts with p, m, t or d.
+    private static func mayBeWordOperator(_ text: String) -> Bool {
+        guard (3...10).contains(text.utf8.count), let first = text.utf8.first else { return false }
+        return "pmtdPMTD".utf8.contains(first)
+    }
+
+    private static func wordOperator(
+        _ word: String, _ chars: [Unicode.Scalar], after index: Int
+    ) -> (op: CalcOperator, end: Int)? {
+        let attached = index < chars.count && (chars[index].isNumber || chars[index].isCombiningMark)
+        guard !attached else { return nil }
+        switch word {
+        case "per": return (.divide, index)
+        case "plus": return (.add, index)
+        case "minus": return (.subtract, index)
+        case "times": return (.multiply, index)
+        case "divided", "multiplied":
+            var start = index
+            while start < chars.count, chars[start].isWhitespace { start += 1 }
+            var end = start
+            while end < chars.count, chars[end].isLetter { end += 1 }
+            guard String(String.UnicodeScalarView(chars[start..<end])).lowercased() == "by" else {
+                return nil
+            }
+            return (word == "divided" ? .divide : .multiply, end)
+        default: return nil
         }
     }
 

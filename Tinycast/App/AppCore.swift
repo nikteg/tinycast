@@ -102,10 +102,13 @@ final class AppCore {
         audioDucker: dictationAudioDucker,
         confirmEnable: { [unowned self] in
             await self.confirm(
-                title: "Enable Dictation?",
-                message: "Tinycast needs microphone access for dictation and Accessibility to paste into "
-                    + "other apps. Audio is processed on this Mac.",
-                symbol: "waveform", confirmTitle: "Continue", tone: .neutral,
+                title: String(localized: "Enable Dictation?"),
+                message: String(
+                    localized: """
+                        Tinycast needs microphone access for dictation and Accessibility to paste into \
+                        other apps. Audio is processed on this Mac.
+                        """),
+                symbol: "waveform", confirmTitle: String(localized: "Continue"), tone: .neutral,
                 confirmRole: .standard)
         },
         showMessage: { [unowned self] in self.showMessage($0, tone: $1) })
@@ -254,12 +257,17 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var quickAICoordinator = QuickAICoordinator(
         chats: aiChats, settings: settings, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
+    @ObservationIgnored private(set) lazy var deepLinkCoordinator = DeepLinkCoordinator(
+        scheme: AppURLScheme.current, settings: settings, hotKeys: hotKeys,
+        paletteCoordinator: paletteCoordinator, settingsCoordinator: settingsCoordinator,
+        core: self)
 
     @ObservationIgnored private lazy var windowController = PaletteWindowController(core: self)
     @ObservationIgnored private lazy var messageHUD = MessageHUDController(settings: settings)
     private(set) var isShowingDialog = false
+    /// A link that launched the app can arrive before `start` wires anything; it waits, then runs.
+    @ObservationIgnored private var pendingURLs: [URL]? = []
     var isDimmingPaletteForDialog: Bool { isShowingDialog && windowController.isVisible }
-    /// Every confirmation, report and prompt; it also stops a held hotkey stacking them.
     @ObservationIgnored private lazy var dialogs = DialogController(
         settings: settings,
         onPresentationChanged: { [weak self] isPresenting in
@@ -267,6 +275,9 @@ final class AppCore {
             isShowingDialog = isPresenting
         })
     private let healthTicker = HealthTicker()
+    /// Resolved once by AppKit, so it is what this process shows until it relaunches.
+    private let launchLocalization = Bundle.main.preferredLocalizations.first
+    private var relaunchRequested = false
 
     private init() {
         let launcherRanking = LauncherRankingStore()
@@ -294,16 +305,17 @@ final class AppCore {
             saveSelection: { UserDefaults.standard.set($0?.rawValue, forKey: noteSelectionKey) })
     }
 
-    func start() {
+    func start(launchedByUser: Bool) {
         Signposts.interval("AppCore.start") {
             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
             NSApp.setActivationPolicy(.accessory)
             dictationAudioDucker.recover()
             applyAppearance()
+            applyMotion()
             observeEffectiveAppearance()
             pinnedEmoji.onPersistenceFailure = { [weak self] in
-                self?.showMessage("Couldn't save Emoji & Symbols pins", tone: .danger)
+                self?.showMessage(String(localized: "Couldn't save Emoji & Symbols pins"), tone: .danger)
             }
 
             appIndex.start(settings: settings)
@@ -366,17 +378,16 @@ final class AppCore {
             pomodoroCoordinator.start()
             timerCoordinator.start()
             Task { await appIndex.refresh() }
-            Task { await emojiIndex.load(languages: Locale.preferredLanguages) }
+            Task { await emojiIndex.load(languages: SystemLanguages.preferred) }
             currencyRates.start()
-            updateChecker.onUpdateAvailable = { [weak self] release in
-                self?.updateCoordinator.presentIfAvailable(release) ?? true
-            }
+            updateChecker.onUpdateAvailable = { [weak self] in self?.updateCoordinator.offer($0) }
             updateCoordinator.applyAutomaticChecking()
             forkUpdateCoordinator.start()
             // The fork asks for no support: the checkout is upstream's, so the command goes too.
             appIndex.setCommandsVisible([.support], false)
 
             hyperKey.healthTicker = healthTicker
+            dictationKey.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
             snippetListener.healthTicker = healthTicker
 
@@ -432,13 +443,7 @@ final class AppCore {
                 }
             }
             hotKeys.displayName = { [weak self] action in self?.hotKeyDisplayName(for: action) }
-            hotKeys.allowsAction = { [weak self] action in
-                guard let self, visibility.allowsHotKey(action) else { return false }
-                if action == .dictation { return settings.dictationEnabled }
-                // A disabled feature drops its commands from the launcher; their shortcuts go too.
-                guard case .command(let id) = action else { return true }
-                return appIndex.isCommandEnabled(id)
-            }
+            hotKeys.allowsAction = { [weak self] in self?.allowsHotKeyAction($0) ?? false }
             KeyShortcut.displayedHyperChord = { [settings] in
                 guard settings.hyperKey != .none else { return nil }
                 return KeyShortcut.hyperChord(includesShift: settings.hyperKeyIncludesShift)
@@ -479,22 +484,55 @@ final class AppCore {
             if !OnboardingState.hasOnboarded {
                 OnboardingState.markShown()
                 onboardingCoordinator.showOnboarding()
+            } else if launchedByUser {
+                paletteCoordinator.showPalette(mode: .launcher)
             }
+            reportInstall(updateChecker.takeInstallReport())
+        }
+        openPendingURLs()
+    }
+
+    private func reportInstall(_ report: UpdateCheckStore.InstallReport?) {
+        switch report {
+        case .installed(let version):
+            showMessage(String(localized: "Updated to Tinycast \(version.description)"))
+        case .notInstalled(let version):
+            showMessage(
+                String(
+                    localized: """
+                        Tinycast \(version.description) could not be installed. \
+                        Check for updates to try again.
+                        """),
+                tone: .danger)
+        case nil:
+            break
         }
     }
 
-    /// Clicking the Dock icon: raise whichever window is already open, else summon the launcher.
+    private func openPendingURLs() {
+        let waiting = pendingURLs ?? []
+        pendingURLs = nil
+        waiting.forEach(handleOpenURL)
+    }
+
     func handleReopen() {
         if settingsCoordinator.focusExisting() { return }
         if aiChatCoordinator.focusExisting() { return }
         if onboardingCoordinator.focusExisting() { return }
-        if updateCoordinator.focusExisting() { return }
         if supportCoordinator.focusExisting() { return }
         if customCommandCoordinator.focusOutputWindow() { return }
         paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
     }
 
     func handleOpenURL(_ url: URL) {
+        if pendingURLs != nil {
+            pendingURLs?.append(url)
+            return
+        }
+        if deepLinkCoordinator.handles(url) {
+            deepLinkCoordinator.open(url)
+            return
+        }
         guard ExtensionDeepLink.claims(url) else { return }
         guard let route = ExtensionDeepLink.route(url: url) else {
             paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
@@ -506,6 +544,14 @@ final class AppCore {
         case .storeInstall(let install):
             extensionCoordinator.showStoreInstall(install)
         }
+    }
+
+    func allowsHotKeyAction(_ action: HotKeyAction) -> Bool {
+        guard visibility.allowsHotKey(action) else { return false }
+        if action == .dictation { return settings.dictationEnabled }
+        // A disabled feature drops its commands from the launcher; their shortcuts go too.
+        guard case .command(let id) = action else { return true }
+        return appIndex.isCommandEnabled(id)
     }
 
     /// The store-backed half of the conflict message; `HotKeyManager` names the catalogs itself.
@@ -560,7 +606,9 @@ final class AppCore {
             return
         }
         guard clipboardStore.setTextSearchEnabled(true) else {
-            showMessage("Couldn't enable text recognition for clipboard history.", tone: .danger)
+            showMessage(
+                String(localized: "Couldn't enable text recognition for clipboard history."),
+                tone: .danger)
             return
         }
         clipboardStore.setTextSearchActive(palette.isVisible)
@@ -574,6 +622,15 @@ final class AppCore {
             self?.clipboardCoordinator.followSearchResults(query: query, previous: previous, current: current)
         }
         indexer.start()
+    }
+
+    func relaunch() {
+        guard !relaunchRequested else { return }
+        relaunchRequested = true
+        // AppKit's termination loop must start outside a Swift task or dispatch callback.
+        RunLoop.main.perform(inModes: [.common]) {
+            MainActor.assumeIsolated { NSApp.terminate(nil) }
+        }
     }
 
     func prepareForTermination() {
@@ -594,6 +651,8 @@ final class AppCore {
         mcpOAuth.stop()
         mcp.stop()
         installedAI.stop()
+        updateCoordinator.installStagedUpdate()
+        if relaunchRequested { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
     }
 
     /// Only the tool whose own path or variables changed is checked again; the rest keep running.
@@ -638,7 +697,8 @@ final class AppCore {
             against: aiSettings.connections, fallback: aiSettings.defaultModel)
         guard let selection = quickActionSettings.model(for: action) ?? aiSettings.defaultModel
         else {
-            throw AIProviderError.unavailable("Choose a model in Settings \u{2192} Quick Actions.")
+            throw AIProviderError.unavailable(
+                String(localized: "Choose a model in Settings \u{2192} Quick Actions."))
         }
         return try AIProviderFactory.make(
             selection: selection, settings: aiSettings, subscription: chatGPTSubscription,
@@ -689,6 +749,9 @@ final class AppCore {
         track(
             { _ = $0.clipboardTextSearchEnabled }, reproject: { $0.applyClipboardTextSearch() })
         track({ _ = $0.fileSearchEnabled }, reproject: { $0.fileSearchCoordinator.applyEnabled() })
+        track(
+            { _ = $0.fileSearchShowInLauncher },
+            reproject: { $0.fileSearchCoordinator.applyLauncherFiles() })
         // Two features, one switch: each coordinator gates only its own command and mode.
         track(
             { _ = $0.navigationEnabled },
@@ -697,6 +760,8 @@ final class AppCore {
                 $0.menuSearchCoordinator.applyEnabled()
             })
         track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
+        track(
+            { _ = $0.notesShowsInMenuBar }, reproject: { $0.notesCoordinator.applyMenuBarItem() })
         track({ _ = $0.aiEnabled }, reproject: { $0.aiChatCoordinator.applyEnabled() })
         track(
             { _ = $0.dictationIdleRelease },
@@ -747,6 +812,7 @@ final class AppCore {
             {
                 _ = $0.fileSearchScopes
                 _ = $0.fileSearchIgnorePatterns
+                _ = $0.fileSearchRemovedDefaultPatterns
             }, reproject: { $0.fileSearchCoordinator.applyPolicy() })
         track({ _ = $0.snippetsEnabled }, reproject: { $0.snippetCoordinator.applySnippetsEnabled() })
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
@@ -755,6 +821,8 @@ final class AppCore {
             { _ = $0.snippetsShowInLauncher },
             reproject: { $0.snippetCoordinator.applySnippetsLauncherPresence() })
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
+        track({ _ = $0.animationsEnabled }, reproject: { $0.applyMotion() })
+        track({ _ = $0.language }, reproject: { $0.offerLanguageRelaunch() })
         track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
         // Settings panes did these on change; settings.json can change them with no pane open.
         track(
@@ -774,6 +842,31 @@ final class AppCore {
     private func applyAppearance() {
         Theme.Colors.setDarkGray(settings.appearance == .darkGray)
         NSApp.appearance = settings.appearance.nsAppearance
+    }
+
+    /// A built panel keeps the behaviour it was made with, so the live ones are re-pointed.
+    private func applyMotion() {
+        Motion.isEnabled = settings.animationsEnabled
+        for case let panel as any AnimatedPanel in NSApp.windows {
+            panel.followMotion()
+        }
+    }
+
+    private var isLanguagePending: Bool { settings.language.rawValue != launchLocalization }
+
+    private func offerLanguageRelaunch() {
+        guard isLanguagePending else { return }
+        Task {
+            guard
+                await confirm(
+                    title: String(localized: "Relaunch Tinycast?"),
+                    message: String(localized: "The new language applies after Tinycast relaunches."),
+                    symbol: "globe", confirmTitle: String(localized: "Relaunch"), tone: .neutral,
+                    confirmRole: .standard, dismissTitle: String(localized: "Later")),
+                isLanguagePending
+            else { return }
+            relaunch()
+        }
     }
 
     /// IconCache is told here, not from `applyAppearance()`, which never fires under `.system`.
@@ -890,7 +983,6 @@ final class AppCore {
 
     // MARK: - Interruption
 
-    /// What the app is in the middle of; the update prompt and the support reminder both ask first.
     var currentActivity: UpdateActivity {
         UpdateActivity(
             isExpandingSnippet: textInjector.isDelivering,
@@ -901,7 +993,6 @@ final class AppCore {
             isPaletteVisible: paletteCoordinator.isVisible)
     }
 
-    /// Whether a window may take focus without interrupting something the user started.
     var canInterruptUser: Bool { UpdateReadiness.evaluate(currentActivity) == nil }
 
     // MARK: - Dialogs, routed here so `dialogs` stays the single owner
@@ -914,7 +1005,7 @@ final class AppCore {
     func confirm(
         title: String, message: String?, symbol: String?, confirmTitle: String,
         tone: DialogTone = .danger, confirmRole: DialogAction.Role = .destructive,
-        dismissTitle: String = "Cancel"
+        dismissTitle: String = String(localized: "Cancel")
     ) async -> Bool {
         await dialogs.confirm(
             title: title, message: message, symbol: symbol, tone: tone, confirmTitle: confirmTitle,
@@ -955,15 +1046,17 @@ final class AppCore {
         messageHUD.dismiss()
     }
 
-    /// The volume slider, so `dialogs` stays the single owner of every prompt in the app.
     func pickVolume(current: Float32) async -> Float32? {
         await dialogs.pickVolume(current: current)
     }
 
-    /// The snippet argument prompt, for the same reason.
     func fillSnippetArguments(
         snippetName: String, arguments: [SnippetTemplateEngine.MissingArgument]
     ) async -> [String: String]? {
         await dialogs.fillSnippetArguments(snippetName: snippetName, arguments: arguments)
+    }
+
+    func editClipboardText(_ text: String) async -> String? {
+        await dialogs.editClipboardText(text)
     }
 }
