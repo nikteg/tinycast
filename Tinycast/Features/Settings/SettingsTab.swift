@@ -10,12 +10,13 @@ enum SettingsTab: CaseIterable, Identifiable {
         self = tab
     }
 
-    /// False for the AI panes in a build without `AI_FEATURES`, which leaves their code out.
+    /// False for iCloud Sync, which a self-signed build cannot use, and the AI panes without `AI_FEATURES`.
     var isBuilt: Bool {
+        guard self != .iCloudSync else { return false }
         #if AI_FEATURES
-        true
+        return true
         #else
-        self != .ai && self != .quickActions
+        return self != .ai && self != .quickActions
         #endif
     }
 
@@ -146,7 +147,7 @@ enum SettingsSection: CaseIterable, Identifiable {
 
     var tabs: [SettingsTab] {
         switch self {
-        case .general: return [.general, .iCloudSync, .permissions]
+        case .general: return [.general, .iCloudSync, .permissions].filter(\.isBuilt)
         case .launcher:
             return [
                 .applications, .systemSettings, .systemActions, .commands, .quicklinks,

@@ -69,6 +69,9 @@ that was never pushed says so rather than guessing. Check for Updates runs the s
   monthly reminder are gone — the checkout behind them is upstream's. The code stays, unwired, so
   upstream syncs merge cleanly.
 - **No AI.** See [AI is left out](#ai-is-left-out).
+- **No iCloud Sync.** It needs a provisioning profile with the iCloud entitlement, which a
+  self-signed build cannot carry. `SettingsTab.isBuilt` hides the pane and `AppSettings` reads the
+  switch as off; the code stays compiled so upstream syncs merge cleanly.
 - The About footer keeps a short licence notice. The AGPL (§5(d)) requires one in the interface of
   any copy that is passed on, so it stays even though the rest of upstream's branding is removed.
 

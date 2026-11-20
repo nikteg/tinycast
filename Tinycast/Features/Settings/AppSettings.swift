@@ -1004,7 +1004,8 @@ final class AppSettings {
             defaults.object(forKey: Key.supportReminders.rawValue) == nil
             || defaults.bool(forKey: Key.supportReminders.rawValue)
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
-        iCloudSyncEnabled = defaults.bool(forKey: Key.iCloudSyncEnabled.rawValue)
+        // The fork has no iCloud entitlement, so a stored `true` must never start a session.
+        iCloudSyncEnabled = false
         iCloudSyncDisabledCategories = Set(
             (defaults.stringArray(forKey: Key.iCloudSyncDisabledCategories.rawValue) ?? [])
                 .compactMap(SyncCategory.init(rawValue:)))
