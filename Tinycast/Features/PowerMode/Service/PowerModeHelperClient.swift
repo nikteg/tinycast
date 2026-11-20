@@ -14,7 +14,7 @@ final class PowerModeHelperClient {
 
     private let bundleID: String
 
-    init(bundleID: String = Bundle.main.bundleIdentifier ?? "com.tinycast.app") {
+    init(bundleID: String = Bundle.main.bundleIdentifier ?? "com.abueammar.tinycast") {
         self.bundleID = bundleID
     }
 

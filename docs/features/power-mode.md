@@ -6,7 +6,7 @@ Low Power.
 ## Invariants
 
 - **`Model/` stays Foundation-only.** `PowerMode` and `PowerModeHelperMessage` are compiled by
-  `power-mode-test`, and by the helper.
+  `PowerModeTests`, and by the helper.
 - **The battery's mode only** — `pmset -b powermode`. The power adapter's setting is left alone, and
   High Power counts as "not low", so toggling from it lands on Low Power.
 - **Read fresh on every toggle**: Settings, Control Center or `pmset` may have changed it since.

@@ -19,7 +19,10 @@ ask for upstream features.
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Tinycast command palette" width="720">
+  <a href="https://tinycast.dev"><strong>Website</strong></a> ·
+  <a href="#install"><strong>Install</strong></a> ·
+  <a href="https://tinycast.dev/docs/"><strong>Docs</strong></a> ·
+  <a href="https://tinycast.dev/support"><strong>Support</strong></a>
 </p>
 
 ## What this fork adds

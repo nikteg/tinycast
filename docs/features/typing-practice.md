@@ -9,7 +9,7 @@ image.
 
 - **`Model/` stays Foundation-only and takes every time as a parameter.** `TypingTest`,
   `TypingSample`, `TypingHistory`, `TypingLineLayout` and `TypingFieldEdit` are compiled by
-  `typing-practice-test`; the session's clock is `systemUptime`, never the wall clock, so a clock
+  `TypingPracticeTests`; the session's clock is `systemUptime`, never the wall clock, so a clock
   change mid-test cannot bend a result.
 - **The keys arrive through a hidden `TextField`, never a key monitor.** Its field editor keeps key
   repeat, dead keys, IME and ⌥⌫ for free; `TypingFieldEdit` turns each edit to its text back into

@@ -30,15 +30,13 @@ final class AppCore {
         DictationModelStore(idleRelease: settings.dictationIdleRelease)
     @ObservationIgnored private(set) lazy var hyperKey = HyperKeyManager(
         settings: settings, hotKeys: hotKeys)
-    @ObservationIgnored private lazy var dictationKey = DictationKeyManager(hotKeys: hotKeys)
     let windowMover = WindowMover()
     let spaceSwitcher = SpaceSwitcher()
     let inputSourceSwitcher = InputSourceSwitcher()
     let settings: AppSettings
     /// Mirrors settings into settings.json; nil while the Backup pane's switch is off.
     @ObservationIgnored private var settingsFile: SettingsFileRepository?
-    /// The file's launcher items, kept to apply a waiting record once its app is installed.
-    @ObservationIgnored private var launcherSettingsFile: LauncherSettingsFile?
+    @ObservationIgnored private(set) lazy var settingsBindings = makeSettingsBindings()
     @ObservationIgnored private var appearanceObservation: NSKeyValueObservation?
     #if AI_FEATURES
     /// The last verdict `trackChatRoute` acted on; nil until it has read one.
@@ -86,6 +84,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var mcp = MCPServerManager(oauth: mcpOAuth)
     let quickActionSettings = QuickActionSettingsStore()
     let customQuickActions = CustomQuickActionStore()
+    let chatPresets = ChatPresetStore()
     let chatGPTSubscription = ChatGPTSubscriptionManager()
     let installedAI = InstalledAIManager()
     @ObservationIgnored private var appliedLaunchRevisions: [InstalledAIKind: Int] = [:]
@@ -246,6 +245,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var forkUpdateCoordinator = ForkUpdateCoordinator(core: self)
     @ObservationIgnored private(set) lazy var supportCoordinator = SupportCoordinator(
         store: supportReminders, core: self)
+    @ObservationIgnored private(set) lazy var cloudSyncCoordinator = CloudSyncCoordinator(core: self)
     #if AI_FEATURES
     @ObservationIgnored private(set) lazy var quickActionCoordinator = QuickActionCoordinator(
         settings: settings, store: quickActionSettings, customActions: customQuickActions,
@@ -397,7 +397,6 @@ final class AppCore {
             appIndex.setCommandsVisible([.support], false)
 
             hyperKey.healthTicker = healthTicker
-            dictationKey.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
             snippetListener.healthTicker = healthTicker
 
@@ -450,9 +449,11 @@ final class AppCore {
                 // After the first scan, so the file's apps and panes have entries to match.
                 if settings.settingsFileEnabled, settingsFile == nil {
                     startSettingsFile(importing: true)
-                } else if let launcherSettingsFile {
-                    reportSettingsFileIssues(launcherSettingsFile.applyInstalled())
+                } else {
+                    let issues = settingsBindings.launcher.applyInstalled()
+                    if settingsFile != nil { reportSettingsFileIssues(issues) }
                 }
+                cloudSyncCoordinator.appIndexDidScan()
             }
             hotKeys.displayName = { [weak self] action in self?.hotKeyDisplayName(for: action) }
             hotKeys.allowsAction = { [weak self] in self?.allowsHotKeyAction($0) ?? false }
@@ -475,11 +476,10 @@ final class AppCore {
                 windowRoomIDs: Set(rooms.rooms.map(\.id)),
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)),
                 quickActionIDs: quickActionIDs)
+            trackHotKeyAllowance()
             // After `hotKeys.start`: Secure Input equivalents are built from the loaded bindings.
             hyperKey.onProblem = { [weak self] in self?.showMessage($0, tone: .danger) }
             hyperKey.start()
-            dictationKey.onProblem = { [weak self] in self?.showMessage($0, tone: .danger) }
-            dictationKey.start()
 
             snippetsStore.onSnapshot = { [weak self] snapshot in
                 guard let self else { return }
@@ -567,10 +567,24 @@ final class AppCore {
 
     func allowsHotKeyAction(_ action: HotKeyAction) -> Bool {
         guard visibility.allowsHotKey(action) else { return false }
-        if action == .dictation { return settings.dictationEnabled }
         // A disabled feature drops its commands from the launcher; their shortcuts go too.
-        guard case .command(let id) = action else { return true }
-        return appIndex.isCommandEnabled(id)
+        switch action {
+        case .dictation: return settings.dictationEnabled
+        case .command(let id): return appIndex.isCommandEnabled(id)
+        case .windowCommand, .customWindowSize, .windowLayout, .windowRoom:
+            return settings.windowManagementEnabled
+        case .customCommand(let id):
+            return settings.customCommandsEnabled && customCommands.command(id: id)?.isEnabled == true
+        // Snippets load after `start()`; observing `snippets` re-registers them once they arrive.
+        case .snippet(let id):
+            return settings.snippetsEnabled && snippetsStore.record(id: id)?.snippet.isEnabled == true
+        case .quickAction: return settings.quickActionsEnabled
+        case .quicklink(let id):
+            return settings.quicklinksEnabled && quicklinks.quicklink(id: id)?.isEnabled == true
+        case .appleShortcut: return settings.appleShortcutsEnabled
+        case .extensionCommand: return settings.extensionsEnabled
+        case .togglePalette, .app, .settingsPane, .systemAction: return true
+        }
     }
 
     /// The store-backed half of the conflict message; `HotKeyManager` names the catalogs itself.
@@ -660,10 +674,10 @@ final class AppCore {
     func prepareForTermination() {
         if settings.dictationEnabled { dictationCoordinator.prepareForTermination() }
         settingsFile?.flush()
+        cloudSyncCoordinator.flush()
         clipboardTextIndexer?.stop()
-        // HID remaps first: they outlive the process.
+        // Caps Lock first: its remap is the one teardown that outlives the process.
         hyperKey.prepareForTermination()
-        dictationKey.prepareForTermination()
         windowLayoutCoordinator.prepareForTermination()
         roomCoordinator.prepareForTermination()
         inputSourceSwitcher.endSession()
@@ -740,6 +754,7 @@ final class AppCore {
         track(
             { _ = $0.automaticallyCheckForUpdates },
             reproject: { $0.updateCoordinator.applyAutomaticChecking() })
+        track({ _ = $0.iCloudSyncEnabled }, reproject: { $0.cloudSyncCoordinator.applyEnabled() })
         track(
             {
                 _ = $0.windowManagementEnabled
@@ -843,6 +858,7 @@ final class AppCore {
         track(
             {
                 _ = $0.fileSearchScopes
+                _ = $0.fileSearchIncludesHiddenFiles
                 _ = $0.fileSearchIgnorePatterns
                 _ = $0.fileSearchRemovedDefaultPatterns
             }, reproject: { $0.fileSearchCoordinator.applyPolicy() })
@@ -936,6 +952,15 @@ final class AppCore {
         }
     }
 
+    /// Re-arms on whatever `allowsHotKeyAction` read: feature switches, visibility, dictation.
+    private func trackHotKeyAllowance() {
+        withObservationTracking {
+            hotKeys.applyAllowance()
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.trackHotKeyAllowance() }
+        }
+    }
+
     #if AI_FEATURES
     /// A chat route that runs its own MCP client decides which servers Tinycast runs itself.
     private func trackChatRoute() {
@@ -986,26 +1011,11 @@ final class AppCore {
     /// Mirrors settings into settings.json from now on; `importing` applies the file's own first.
     func startSettingsFile(importing: Bool) {
         guard settingsFile == nil else { return }
-        let shortcuts = HotKeySettingsFile(hotKeys: hotKeys)
-        let launcher = LauncherSettingsFile(
-            appIndex: appIndex, aliases: aliases, visibility: visibility, shortcuts: shortcuts)
-        #if AI_FEATURES
-        let (ai, quickActions) = (aiSettings, quickActionSettings)
-        #else
-        let (ai, quickActions): (AISettingsBinding, QuickActionSettingsBinding) = ((), ())
-        #endif
         let file = SettingsFileRepository(
-            fileURL: AppPaths.settingsFile(),
-            bindings: SettingsFileSchema.bindings(
-                settings: settings, ai: ai, quickActions: quickActions,
-                shortcuts: shortcuts, launcher: launcher,
-                windowManagement: WindowManagementSettingsFile(
-                    sizes: customWindowSizes, layouts: windowLayouts, rooms: rooms, aliases: aliases,
-                    shortcuts: shortcuts)),
-            commit: shortcuts.commit)
+            fileURL: AppPaths.settingsFile(), bindings: settingsBindings.bindings,
+            commit: settingsBindings.commit)
         file.onIssues = { [weak self] issues in self?.reportSettingsFileIssues(issues) }
         settingsFile = file
-        launcherSettingsFile = launcher
         settings.settingsFileEnabled = true
         file.start(importing: importing)
     }
@@ -1014,8 +1024,25 @@ final class AppCore {
     func stopSettingsFile() {
         settingsFile?.flush()
         settingsFile = nil
-        launcherSettingsFile = nil
         settings.settingsFileEnabled = false
+    }
+
+    private func makeSettingsBindings() -> SettingsBindingSet {
+        let shortcuts = HotKeySettingsFile(hotKeys: hotKeys)
+        let launcher = LauncherSettingsFile(
+            appIndex: appIndex, aliases: aliases, visibility: visibility, shortcuts: shortcuts)
+        #if AI_FEATURES
+        let (ai, quickActions) = (aiSettings, quickActionSettings)
+        #else
+        let (ai, quickActions): (AISettingsBinding, QuickActionSettingsBinding) = ((), ())
+        #endif
+        let bindings = SettingsFileSchema.bindings(
+            settings: settings, ai: ai, quickActions: quickActions,
+            shortcuts: shortcuts, launcher: launcher,
+            windowManagement: WindowManagementSettingsFile(
+                sizes: customWindowSizes, layouts: windowLayouts, rooms: rooms, aliases: aliases,
+                shortcuts: shortcuts))
+        return SettingsBindingSet(bindings: bindings, commit: shortcuts.commit, launcher: launcher)
     }
 
     private func reportSettingsFileIssues(_ issues: [SettingsFileIssue]) {

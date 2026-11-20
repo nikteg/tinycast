@@ -5,7 +5,8 @@ enum CalcUnits {
         var units: [CalcDimension: UnitDef] = [:]
         for name in [
             "m", "kg", "s", "m2", "m3", "b", "m/s", "pa", "bps", "m/s2", "n", "j", "w", "hz",
-            "a", "v", "ohm", "as", "m3/s", "px", "px2", "ppi"
+            "a", "v", "ohm", "as", "m3/s", "px", "px2", "ppi", "farad", "henry", "siemens", "wb", "tesla",
+            "mol"
         ] {
             if let unit = byName[name], let dimension = unit.category.dimension {
                 units[dimension] = unit
@@ -16,13 +17,29 @@ enum CalcUnits {
 
     static func productUnit(_ lhs: UnitDef, _ rhs: UnitDef) -> UnitDef? {
         let (measure, duration) = lhs.category == .time ? (rhs, lhs) : (lhs, rhs)
-        guard duration.category == .time, duration.factor >= 60 else { return nil }
+        guard duration.category == .time else { return nil }
+        if let accrued = accruedUnit(measure) { return accrued }
+        guard duration.factor >= 60 else { return nil }
         switch measure.category {
         case .power: return byName[measure.factor >= 1000 ? "kwh" : "wh"]
         case .electricCurrent: return byName[measure.factor <= 0.001 ? "mah" : "ah"]
         default: return nil
         }
     }
+
+    /// A rate over time accrues in its own numerator, so `60 mph * 2 h` is miles rather than meters.
+    private static func accruedUnit(_ rate: UnitDef) -> UnitDef? {
+        let symbol = rate.symbol.replacingOccurrences(of: "²", with: "2").replacingOccurrences(
+            of: "³", with: "3")
+        guard let numerator = rateNumerators[symbol] ?? symbol.split(separator: "/").first.map(String.init),
+            numerator != symbol, let unit = byName[numerator] ?? byName[numerator.lowercased()],
+            let rateDimension = rate.dimension, let unitDimension = unit.dimension,
+            unitDimension == rateDimension.adding(CalcDimension(time: 1))
+        else { return nil }
+        return unit
+    }
+
+    private static let rateNumerators = ["mph": "mi", "kn": "nmi"]
 
     enum ConversionParse: Equatable {
         case value(input: Double, from: UnitDef, to: UnitDef, output: Double)
@@ -61,6 +78,9 @@ enum CalcUnits {
             guard let output = reciprocalValue(input, from: from, to: to) else { return nil }
             return .value(input: input, from: from, to: to, output: output)
         }
+        if let output = arcValue(input, from: from, to: to) {
+            return .value(input: input, from: from, to: to, output: output)
+        }
         guard from.category == to.category else { return .mismatch(from: from, to: to) }
         let output = (input * from.factor + from.offset - to.offset) / to.factor
         guard output.isFinite else { return nil }
@@ -79,6 +99,18 @@ enum CalcUnits {
 
     private static func isFuel(_ unit: UnitDef) -> Bool {
         unit.category == .fuelEconomy || unit.category == .fuelConsumption
+    }
+
+    /// A nautical mile is an arcminute of latitude: `4° in nmi`.
+    static func arcValue(_ amount: Double, from: UnitDef, to: UnitDef) -> Double? {
+        let metersPerRadian = 1852 * 10800 / Double.pi
+        if from.category == .angle, to.symbol == "nmi" {
+            return amount * from.factor * metersPerRadian / to.factor
+        }
+        if from.symbol == "nmi", to.category == .angle {
+            return amount * from.factor / metersPerRadian / to.factor
+        }
+        return nil
     }
 
     static func reciprocalValue(_ amount: Double, from: UnitDef, to: UnitDef) -> Double? {
@@ -120,7 +152,7 @@ enum CalcUnits {
 
     static func isConnector(_ token: CalcToken) -> Bool {
         switch token {
-        case .arrow, .ident("to"), .ident("in"): return true
+        case .arrow, .ident("to"), .ident("in"), .ident("as"): return true
         default: return false
         }
     }

@@ -20,6 +20,19 @@ struct CalcResult: Equatable, Sendable {
                 display: "\(CalcFormatter.grouped(text)) \(unit.symbol)",
                 copyText: text + copySeparator + unit.symbol)
         }
+
+        static func money(_ amount: Double, code: String) -> Self {
+            let text = CalcFormatter.currency(amount)
+            return .value(display: "\(CalcFormatter.grouped(text)) \(code)", copyText: "\(text) \(code)")
+        }
+
+        static func quantity(_ value: CalcValue) -> Self {
+            switch value.kind {
+            case .scalar: .number(value.effective)
+            case .unit(let unit): .measurement(value.amount, unit: unit)
+            case .currency(let currency): .money(value.amount, code: currency.code)
+            }
+        }
     }
 
     /// Normalized echo of what was evaluated, shown on the card's left side ("3×3", "10 km").
@@ -44,6 +57,16 @@ struct CalcResult: Equatable, Sendable {
         self.isCurrency = isCurrency
     }
 
+    /// A phrase's card: the query echoed with its spacing collapsed, badged by what it answers.
+    static func phrase(
+        _ query: String, _ payload: Payload, target: String, canChain: Bool = true, isCurrency: Bool = false
+    ) -> CalcResult {
+        CalcResult(
+            expression: query.split(whereSeparator: \.isBlank).joined(separator: " "),
+            sourceBadge: String(localized: "Expression"), targetBadge: target, payload: payload,
+            canChain: canChain, isCurrency: isCurrency)
+    }
+
     /// True only for a copyable value; an error card has no primary action and no actions menu.
     var isActionable: Bool {
         if case .value = payload { return true }
@@ -57,28 +80,75 @@ enum CalcEngine {
         _ raw: String, now: Date, calendar: Calendar, rates: CurrencyRates? = nil,
         region: String? = nil, format: CalcNumberFormat = .english
     ) -> CalcResult? {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed.count <= 256, let query = format.canonical(trimmed) else {
-            return nil
+        let trimmed = withoutQuestionMark(raw.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard !trimmed.isEmpty, trimmed.count <= 256 else { return nil }
+        if trimmed.utf8.contains(where: { $0 == 0x22 || $0 == 0xE2 }), let text = CalcText.evaluate(trimmed) {
+            return text
         }
+        guard let query = format.canonical(trimmed) else { return nil }
+        if let answer = solve(query, now: now, calendar: calendar, rates: rates, region: region) {
+            return answer
+        }
+        guard query.utf8.contains(0x28) else { return nil }
+        let inlined = phrasesInBrackets(query, now: now, calendar: calendar, rates: rates, region: region)
+        guard
+            let answer = wrappedQuantity(inlined ?? query, rates: rates, region: region)
+                ?? inlined.flatMap({ solve($0, now: now, calendar: calendar, rates: rates, region: region) })
+        else { return nil }
+        return CalcResult(
+            expression: CalcFormatter.expression(query), sourceBadge: answer.sourceBadge,
+            targetBadge: answer.targetBadge, payload: answer.payload, canChain: answer.canChain,
+            isCurrency: answer.isCurrency)
+    }
+
+    /// `(2m)` is `2 m`, where a bare `2m` converts.
+    private static func wrappedQuantity(
+        _ text: String, rates: CurrencyRates?, region: String?
+    ) -> CalcResult? {
+        guard text.hasPrefix("("), text.hasSuffix(")"), text.utf8.contains(where: { (48...57).contains($0) }),
+            let tokens = CalcTokenizer.tokenize(text),
+            let quantity = CalcQuantity.evaluate(
+                tokens, query: text, rates: rates, region: region, preserveStandaloneUnit: true),
+            quantity.isActionable
+        else { return nil }
+        return quantity
+    }
+
+    private static func solve(
+        _ query: String, now: Date, calendar: Calendar, rates: CurrencyRates?, region: String?
+    ) -> CalcResult? {
         if query.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) }) {
             return CalcDateTime.namedMoment(query, now: now, calendar: calendar).map(unchained)
         }
+        // The remainder is already canonical, so it must not be re-read in the localized format.
+        if let asked = CalcQuestion.asked(query),
+            let answer = evaluate(asked, now: now, calendar: calendar, rates: rates, region: region)
+        {
+            return answer
+        }
 
         if let fact = CalcDateFacts.evaluate(query, now: now, calendar: calendar) {
-            return unchained(fact)
+            return unchained(sightingNoted(fact, query: query))
         }
 
         if let dateTime = CalcDateTime.evaluate(query, now: now, calendar: calendar) {
-            return unchained(dateTime)
+            return unchained(sightingNoted(dateTime, query: query))
         }
 
         // Before tokenizing: `5pm ldn in sf` is words, which the tokenizer would reject.
-        if let zone = CalcTimeZone.evaluate(query, now: now, calendar: calendar) {
+        let mayNameZone = query.utf8.contains { (97...122).contains($0 | 0x20) || $0 >= 128 || $0 == 58 }
+        if mayNameZone, let zone = CalcTimeZone.evaluate(query, now: now, calendar: calendar) {
             return unchained(zone)
         }
 
-        guard let tokens = CalcTokenizer.tokenize(query), !tokens.isEmpty else { return nil }
+        if let science = CalcScience.evaluate(
+            query, solve: { evaluate($0, now: now, calendar: calendar, rates: rates, region: region) })
+        {
+            return science
+        }
+
+        guard let typed = CalcTokenizer.tokenize(paceInMinutes(query)), !typed.isEmpty else { return nil }
+        let tokens = CalcQuestion.conversion(typed) ?? typed
 
         if CalcSplit.mentions(tokens), let share = CalcSplit.evaluate(query, rates: rates, region: region) {
             return share
@@ -109,9 +179,12 @@ enum CalcEngine {
         }
 
         if let base = baseConversion(tokens, query: query) { return base }
+        if let form = CalcNumberForm.evaluate(tokens, query: query) { return form }
 
         // Typed arithmetic first, so aliases such as `pounds` keep winning in multi-term exprs.
-        if let quantity = CalcQuantity.evaluate(tokens, query: query, rates: rates, region: region) {
+        if let quantity = CalcQuantity.evaluate(tokens, query: query, rates: rates, region: region),
+            quantity.isActionable || !CalcCurrency.isPair(tokens)
+        {
             return quantity
         }
 
@@ -139,14 +212,11 @@ enum CalcEngine {
         if let conversion = CalcCurrency.parseConversion(tokens, rates: rates) {
             switch conversion {
             case .value(let input, let from, let to, let output):
-                let amount = CalcFormatter.currency(output)
                 return CalcResult(
                     expression: "\(CalcFormatter.display(input)) \(from.code)",
                     sourceBadge: from.name,
                     targetBadge: to.name,
-                    payload: .value(
-                        display: "\(CalcFormatter.grouped(amount)) \(to.code)",
-                        copyText: "\(amount) \(to.code)"),
+                    payload: .money(output, code: to.code),
                     isCurrency: true)
             case .mismatch(let from, let to):
                 return CalcResult(
@@ -179,9 +249,76 @@ enum CalcEngine {
                 payload: payload)
         }
 
-        if let percent = CalcPercent.evaluate(tokens, query: query) { return percent }
+        return CalcPercent.evaluate(tokens, query: query) ?? CalcRounding.evaluate(tokens, query: query)
+            ?? CalcFinance.evaluate(tokens, query: query) ?? CalcGrowth.evaluate(tokens, query: query)
+            ?? CalcSpokenMath.evaluate(tokens, query: query)
+            ?? CalcStatistics.evaluate(tokens, query: query) ?? CalcRatePhrases.evaluate(tokens, query: query)
+            ?? CalcSubstance.evaluate(tokens, query: query) ?? CalcPixelDensity.evaluate(tokens, query: query)
+            ?? CalcPitch.evaluate(tokens, query: query)
+    }
 
-        return nil
+    private static func paceInMinutes(_ query: String) -> String {
+        guard query.utf8.contains(0x3A), query.utf8.contains(0x2F),
+            let range = query.range(
+                of: #"(?<![\d:])\d{1,2}:[0-5]\d(?=\s*min\s*/)"#, options: .regularExpression)
+        else { return query }
+        let parts = query[range].split(separator: ":")
+        guard let minutes = Double(parts[0]), let seconds = Double(parts[1]) else { return query }
+        return query.replacingCharacters(in: range, with: CalcFormatter.copyText(minutes + seconds / 60))
+    }
+
+    private static func phrasesInBrackets(
+        _ query: String, now: Date, calendar: Calendar, rates: CurrencyRates?, region: String?
+    ) -> String? {
+        var text = query
+        var from = text.startIndex
+        var changed = false
+        while let close = text[from...].firstIndex(of: ")") {
+            guard let open = text[..<close].lastIndex(of: "("),
+                case let inner = String(text[text.index(after: open)..<close]), isPhrase(inner),
+                let result = inDays(
+                    inner, now: now, calendar: calendar, rates: rates, region: region),
+                case .value(_, let copy) = result.payload,
+                result.canChain || isSpan(copy)
+            else {
+                from = text.index(after: close)
+                continue
+            }
+            var answer = copy.replacingOccurrences(of: ",", with: "")
+            if answer.hasPrefix("-") { answer = "-(\(answer.dropFirst()))" }
+            let offset = text.distance(from: text.startIndex, to: open) + answer.count + 2
+            text.replaceSubrange(open...close, with: "(\(answer))")
+            from = text.index(text.startIndex, offsetBy: offset)
+            changed = true
+        }
+        return changed ? text : nil
+    }
+
+    /// Not a lone quantity (`2m`) nor a half-typed `2 +`.
+    private static func isPhrase(_ inner: String) -> Bool {
+        guard let tokens = CalcTokenizer.tokenize(inner) else { return true }
+        if case .op = tokens.last { return false }
+        return tokens.count > 2
+    }
+
+    /// A calendar span (`6 months 3 weeks`) has no fixed length, so a bracket takes it in days.
+    private static func inDays(
+        _ inner: String, now: Date, calendar: Calendar, rates: CurrencyRates?, region: String?
+    ) -> CalcResult? {
+        let result = evaluate(inner, now: now, calendar: calendar, rates: rates, region: region)
+        guard case .value(_, let copy) = result?.payload, copy.contains(" month") || copy.contains(" year")
+        else { return result }
+        return evaluate(inner + " in days", now: now, calendar: calendar, rates: rates, region: region)
+    }
+
+    private static func isSpan(_ copy: String) -> Bool {
+        guard let unit = copy.split(separator: " ").last else { return false }
+        return ["day", "days", "wk", "hr", "min", "s"].contains(unit)
+    }
+
+    private static func withoutQuestionMark(_ text: String) -> String {
+        guard text.hasSuffix("?") else { return text }
+        return String(text.dropLast()).trimmingCharacters(in: .whitespaces)
     }
 
     // MARK: - Partial expressions
@@ -266,6 +403,19 @@ enum CalcEngine {
             isCurrency: result.isCurrency)
     }
 
+    /// A day set by moon sighting can move by one, so the card says so; the copy stays exact.
+    private static func sightingNoted(_ result: CalcResult, query: String) -> CalcResult {
+        guard CalcHolidays.mentionsSightedDay(query), case .value(let display, let copyText) = result.payload
+        else { return result }
+        return CalcResult(
+            expression: result.expression,
+            sourceBadge: result.sourceBadge,
+            targetBadge: result.targetBadge,
+            payload: .value(display: display + " " + String(localized: "(±1 day)"), copyText: copyText),
+            canChain: result.canChain,
+            isCurrency: result.isCurrency)
+    }
+
     private static func unchained(_ result: CalcResult) -> CalcResult {
         CalcResult(
             expression: result.expression,
@@ -279,12 +429,10 @@ enum CalcEngine {
 
     /// `255 to hex`, `2*128 to hex`: an expression on the left, like `CalcUnits.parseConversion`.
     private static func baseConversion(_ tokens: [CalcToken], query: String) -> CalcResult? {
-        guard tokens.count >= 3, CalcUnits.isConnector(tokens[tokens.count - 2]),
-            case .ident(let name) = tokens[tokens.count - 1], let target = CalcNumberBase(name: name)
-        else { return nil }
+        guard let target = radixTarget(tokens) else { return nil }
 
-        let valueTokens = Array(tokens[0..<(tokens.count - 2)])
-        let literalText = query.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? query
+        let valueTokens = Array(tokens[..<target.start])
+        let literalText = query.split(whereSeparator: \.isBlank).first.map(String.init) ?? query
         let source: UInt64
         let sourceBadge: String
         let sourceText: String
@@ -309,15 +457,32 @@ enum CalcEngine {
         }
 
         let output =
-            target == .decimal
+            target.radix == 10
             ? CalcFormatter.grouped(String(source))
-            : target.prefix + String(source, radix: target.rawValue, uppercase: true)
+            : target.prefix + String(source, radix: target.radix, uppercase: true)
         return CalcResult(
             expression: sourceText,
             sourceBadge: sourceBadge,
             targetBadge: target.name,
             payload: .value(
                 display: output, copyText: output.replacingOccurrences(of: ",", with: "")))
+    }
+
+    private static func radixTarget(
+        _ tokens: [CalcToken]
+    ) -> (start: Int, radix: Int, prefix: String, name: String)? {
+        let count = tokens.count
+        if count >= 3, CalcUnits.isConnector(tokens[count - 2]), case .ident(let name) = tokens[count - 1],
+            let base = CalcNumberBase(name: name)
+        {
+            return (count - 2, base.rawValue, base.prefix, base.name)
+        }
+        guard count >= 4, CalcUnits.isConnector(tokens[count - 3]), tokens[count - 2] == .ident("base"),
+            let radix = decimalLiteral(tokens[count - 1]).flatMap({ Int(exactly: $0) }),
+            (2...36).contains(radix)
+        else { return nil }
+        if let base = CalcNumberBase(rawValue: radix) { return (count - 3, radix, base.prefix, base.name) }
+        return (count - 3, radix, "", String(localized: "Base \(radix)"))
     }
 
     // Both spellings of a plain decimal literal — "255" and the compact "10k" — echo verbatim.

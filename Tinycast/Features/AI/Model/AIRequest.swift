@@ -94,7 +94,8 @@ struct AIMessage: Equatable, Sendable {
 }
 
 struct AIRequest: Equatable, Sendable {
-    static let defaultMaxOutputTokens = 4_096
+    /// The highest every Claude model accepts, for one whose own ceiling the catalog never named.
+    static let defaultMaxOutputTokens = 32_000
 
     let conversationID: UUID?
     let instructions: String?
@@ -126,7 +127,7 @@ struct AIRequest: Equatable, Sendable {
     }
 }
 
-struct AIUsage: Equatable, Sendable {
+struct AIUsage: Codable, Equatable, Sendable {
     var inputTokens: Int?
     var outputTokens: Int?
     /// Prompt tokens served from or written to a cache; Anthropic counts them outside `inputTokens`.

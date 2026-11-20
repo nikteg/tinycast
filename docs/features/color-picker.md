@@ -7,7 +7,7 @@ RGBA, HSL or Oklch.
 ## Invariants
 
 - **`Model/` stays Foundation-only.** `PickedColor` and `ColorHistory` are compiled by
-  `color-picker-test`, together with the clipboard's colour files.
+  `ColorPickerTests`, together with the clipboard's colour files.
 - **Notations are the clipboard's.** A picked colour formats through `ColorValue` and `ColorFormat`,
   and draws with `ColorSwatch`, so a colour reads the same in both features. A new notation is added
   there, never here.

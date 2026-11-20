@@ -7,7 +7,7 @@ each change saying how long the next phase runs and until when.
 ## Invariants
 
 - **`Model/` stays Foundation-only.** `PomodoroTimer` and `PomodoroAnnouncement` are compiled by
-  `pomodoro-test`, and take `now` as a parameter everywhere.
+  `PomodoroTests`, and take `now` as a parameter everywhere.
 - **Stopped is the absence of a timer.** `PomodoroStore.timer == nil` means no cycle; there is no
   third state, and `pomodoro.json` exists only while one runs or is paused.
 - **The wall clock decides the phase.** `advance` rolls past every phase that ended while the Mac

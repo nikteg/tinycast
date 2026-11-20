@@ -8,5 +8,5 @@
 - **`kern.boottime` is the only source**, the clock `uptime` itself reads, taken synchronously on the
   main actor rather than by running the command.
 - **To the minute.** `UptimeReport.span` drops seconds and empty units, so the pill holds still for
-  the `readingHUD` dwell it stays up; `uptime-test` pins the wording. Only the boot date follows the
+  the `readingHUD` dwell it stays up; `UptimeTests` pins the wording. Only the boot date follows the
   reader's locale.

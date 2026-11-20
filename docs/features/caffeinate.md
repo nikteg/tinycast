@@ -6,7 +6,7 @@ preset sets when it lets go. A cup sits in the menu bar while it holds.
 
 ## Invariants
 
-- **`Model/` stays Foundation-only.** `Caffeination` is compiled by `caffeinate-test`, with Timers'
+- **`Model/` stays Foundation-only.** `Caffeination` is compiled by `CaffeinateTests`, with Timers'
   `DurationText`.
 - **One assertion, `kIOPMAssertPreventUserIdleDisplaySleep`**, as `caffeinate -d` takes: the display
   stays on, and so the Mac never idles to sleep. A lid close still sleeps it.

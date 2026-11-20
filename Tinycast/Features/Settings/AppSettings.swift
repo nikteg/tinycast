@@ -344,6 +344,13 @@ final class AppSettings {
         }
     }
 
+    var fileSearchIncludesHiddenFiles: Bool {
+        didSet {
+            defaults.set(
+                fileSearchIncludesHiddenFiles, forKey: Key.fileSearchIncludesHiddenFiles.rawValue)
+        }
+    }
+
     var notesEnabled: Bool {
         didSet { defaults.set(notesEnabled, forKey: Key.notesEnabled.rawValue) }
     }
@@ -446,6 +453,10 @@ final class AppSettings {
     /// The snippets folder as the user wrote it, `~` allowed; nil keeps it in Application Support.
     var snippetsFolder: String? {
         didSet { defaults.set(snippetsFolder, forKey: Key.snippetsFolder.rawValue) }
+    }
+
+    var snippetDefaultAction: SnippetDefaultAction {
+        didSet { defaults.set(snippetDefaultAction.rawValue, forKey: Key.snippetDefaultAction.rawValue) }
     }
 
     var navigationEnabled: Bool {
@@ -604,7 +615,7 @@ final class AppSettings {
         PomodoroDurations(workMinutes: pomodoroWorkMinutes, restMinutes: pomodoroRestMinutes)
     }
 
-    /// Off means fully off: no launcher entries, and a still-registered shortcut moves nothing.
+    /// Off means fully off: no launcher entries and no registered shortcut.
     var windowManagementEnabled: Bool {
         didSet {
             defaults.set(windowManagementEnabled, forKey: Key.windowManagementEnabled.rawValue)
@@ -653,7 +664,7 @@ final class AppSettings {
         }
     }
 
-    /// Off means fully off, down to a still-registered shortcut opening nothing.
+    /// Off means fully off: no launcher entries and no registered shortcut.
     var quicklinksEnabled: Bool {
         didSet { defaults.set(quicklinksEnabled, forKey: Key.quicklinksEnabled.rawValue) }
     }
@@ -698,6 +709,20 @@ final class AppSettings {
     /// Whether settings.json mirrors these settings; `AppCore` starts and stops the mirror.
     var settingsFileEnabled: Bool {
         didSet { defaults.set(settingsFileEnabled, forKey: Key.settingsFileEnabled.rawValue) }
+    }
+
+    /// Sends this Mac's data to iCloud, so only the iCloud Sync pane may turn it on.
+    var iCloudSyncEnabled: Bool {
+        didSet { defaults.set(iCloudSyncEnabled, forKey: Key.iCloudSyncEnabled.rawValue) }
+    }
+
+    /// The categories this Mac leaves out; stored as exclusions, so a new category starts synced.
+    var iCloudSyncDisabledCategories: Set<SyncCategory> {
+        didSet {
+            defaults.set(
+                iCloudSyncDisabledCategories.map(\.rawValue).sorted(),
+                forKey: Key.iCloudSyncDisabledCategories.rawValue)
+        }
     }
 
     /// Rows a link from outside may run without asking; only `DeepLinkCoordinator` adds to it.
@@ -813,6 +838,8 @@ final class AppSettings {
         fileSearchRemovedDefaultPatterns =
             defaults.stringArray(forKey: Key.fileSearchRemovedDefaultPatterns.rawValue) ?? []
         fileSearchShowInLauncher = defaults.bool(forKey: Key.fileSearchShowInLauncher.rawValue)
+        fileSearchIncludesHiddenFiles = defaults.bool(
+            forKey: Key.fileSearchIncludesHiddenFiles.rawValue)
         notesEnabled = defaults.bool(forKey: Key.notesEnabled.rawValue)
         dictationEnabled = defaults.bool(forKey: Key.dictationEnabled.rawValue)
         dictationMode =
@@ -870,6 +897,9 @@ final class AppSettings {
             defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)
         snippetsFolder = defaults.string(forKey: Key.snippetsFolder.rawValue)
+        snippetDefaultAction =
+            defaults.string(forKey: Key.snippetDefaultAction.rawValue)
+            .flatMap(SnippetDefaultAction.init) ?? .paste
         // Opt-in, unlike its siblings: until it is asked for, nothing about extensions is loaded.
         extensionsEnabled = defaults.bool(forKey: Key.extensionsEnabled.rawValue)
         extensionsShowInLauncher =
@@ -974,6 +1004,10 @@ final class AppSettings {
             defaults.object(forKey: Key.supportReminders.rawValue) == nil
             || defaults.bool(forKey: Key.supportReminders.rawValue)
         settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)
+        iCloudSyncEnabled = defaults.bool(forKey: Key.iCloudSyncEnabled.rawValue)
+        iCloudSyncDisabledCategories = Set(
+            (defaults.stringArray(forKey: Key.iCloudSyncDisabledCategories.rawValue) ?? [])
+                .compactMap(SyncCategory.init(rawValue:)))
         allowedDeepLinks = defaults.stringArray(forKey: Key.allowedDeepLinks.rawValue) ?? []
     }
 }

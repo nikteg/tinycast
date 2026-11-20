@@ -168,7 +168,7 @@ enum CommandID: String, CaseIterable, Sendable {
     var sfSymbol: String {
         switch self {
         case .quickAI: return "sparkles"
-        case .aiChat: return "bubble.left.and.bubble.right"
+        case .aiChat: return "bubble.left.and.bubble.right.fill"
         #if AI_FEATURES
         case .fixGrammar: return BuiltInQuickAction.fixGrammar.symbol
         case .rewrite: return BuiltInQuickAction.rewrite.symbol
@@ -178,59 +178,57 @@ enum CommandID: String, CaseIterable, Sendable {
         case .fixGrammar, .rewrite, .translate, .summarize: return "sparkles"
         #endif
         case .calculatorHistory: return "plus.forwardslash.minus"
-        case .clipboardHistory: return "doc.on.clipboard"
-        case .pasteSequentially: return "list.bullet.clipboard"
-        case .searchEmoji: return "face.smiling"
+        case .clipboardHistory: return "list.clipboard.fill"
+        case .pasteSequentially: return "arrow.right.doc.on.clipboard"
+        case .searchEmoji: return "face.smiling.inverse"
         case .searchFiles: return "doc.text.magnifyingglass"
         case .searchMenuItems: return "menubar.rectangle"
         case .switchWindows, .switchWindowsBackwards: return "macwindow.on.rectangle"
-        case .openCamera: return "camera"
+        case .openCamera: return "camera.fill"
         case .openInBrowser: return "globe"
-        case .runShellCommand: return "terminal"
-        case .createCustomCommand: return "terminal"
-        case .searchCustomCommands: return "terminal"
-        case .define: return "book.closed"
-        case .startTypingPractice: return "keyboard"
+        case .runShellCommand, .createCustomCommand, .searchCustomCommands: return "terminal.fill"
+        case .define: return "book.closed.fill"
+        case .startTypingPractice: return "keyboard.fill"
         case .joinNextMeeting: return "video.fill"
         case .mySchedule: return "calendar"
         case .createEvent: return "calendar.badge.plus"
         case .copyMeetingLink: return "link"
         case .openInCalendar: return "calendar.badge.clock"
         case .startPomodoro: return "timer"
-        case .pausePomodoro: return "playpause"
-        case .skipPomodoroPhase: return "forward.end"
-        case .stopPomodoro: return "stop.circle"
-        case .startTimer: return "stopwatch"
-        case .stopAllTimers: return "xmark.circle"
-        case .toggleCaffeinate: return "cup.and.heat.waves"
+        case .pausePomodoro: return "playpause.fill"
+        case .skipPomodoroPhase: return "forward.end.fill"
+        case .stopPomodoro: return "stop.circle.fill"
+        case .startTimer: return "stopwatch.fill"
+        case .stopAllTimers: return "xmark.circle.fill"
+        case .toggleCaffeinate: return "cup.and.heat.waves.fill"
         case .caffeinateForDuration: return "hourglass"
         case .toggleLowPowerMode: return "battery.50percent"
-        case .pickColor: return "eyedropper"
-        case .colorHistory: return "paintpalette"
-        case .killProcess: return "xmark.octagon"
+        case .pickColor: return "eyedropper.full"
+        case .colorHistory: return "paintpalette.fill"
+        case .killProcess: return "xmark.octagon.fill"
         case .listeningPorts: return "network"
-        case .confetti: return "party.popper"
+        case .confetti: return "party.popper.fill"
         case .uptime: return "clock.arrow.circlepath"
-        case .showNotes: return "text.page"
+        case .showNotes: return "text.page.fill"
         case .createNote: return "note.text.badge.plus"
         case .searchNotes: return "text.magnifyingglass"
-        case .createWindowLayout: return "plus.rectangle.on.rectangle"
+        case .createWindowLayout: return "plus.rectangle.on.rectangle.fill"
         case .captureWindowLayout: return "macwindow.badge.plus"
         case .switchRoom: return "door.left.hand.open"
-        case .createRoom: return "rectangle.stack.badge.plus"
+        case .createRoom: return "rectangle.stack.fill.badge.plus"
         case .createQuicklink: return "link.badge.plus"
         case .searchQuicklinks: return Quicklink.sfSymbol
-        case .importQuicklinks: return "square.and.arrow.down"
-        case .exportQuicklinks: return "square.and.arrow.up"
+        case .importQuicklinks: return "square.and.arrow.down.fill"
+        case .exportQuicklinks: return "square.and.arrow.up.fill"
         case .searchSnippets: return "curlybraces"
-        case .createSnippet: return "plus.rectangle.on.rectangle"
-        case .exportSettings: return "square.and.arrow.up"
-        case .importSettings: return "square.and.arrow.down"
-        case .importFromRaycast: return "arrow.down.doc"
-        case .checkForUpdates: return "arrow.down.circle"
-        case .settings: return "gearshape"
-        case .about: return "info.circle"
-        case .support: return "heart"
+        case .createSnippet: return "plus.rectangle.on.rectangle.fill"
+        case .exportSettings: return "square.and.arrow.up.fill"
+        case .importSettings: return "square.and.arrow.down.fill"
+        case .importFromRaycast: return "arrow.down.doc.fill"
+        case .checkForUpdates: return "arrow.down.circle.fill"
+        case .settings: return "gearshape.fill"
+        case .about: return "info.circle.fill"
+        case .support: return "heart.fill"
         case .quit: return "power"
         }
     }
@@ -242,6 +240,33 @@ enum CommandID: String, CaseIterable, Sendable {
         #else
         ![.quickAI, .aiChat, .fixGrammar, .rewrite, .translate, .summarize].contains(self)
         #endif
+    }
+
+    var tint: IconTint {
+        switch self {
+        case .quickAI, .aiChat, .confetti: return .purple
+        case .fixGrammar, .rewrite, .translate, .summarize, .clipboardHistory, .pasteSequentially,
+            .startTypingPractice:
+            return .indigo
+        case .calculatorHistory, .checkForUpdates, .toggleLowPowerMode: return .green
+        case .searchEmoji, .startTimer, .stopAllTimers: return .orange
+        case .searchFiles, .openInBrowser, .createQuicklink, .searchQuicklinks, .importQuicklinks,
+            .exportQuicklinks:
+            return .blue
+        case .searchMenuItems, .switchWindows, .switchWindowsBackwards, .runShellCommand,
+            .createCustomCommand, .searchCustomCommands, .killProcess, .listeningPorts:
+            return .graphite
+        case .openCamera, .settings, .about, .uptime: return .gray
+        case .define, .searchSnippets, .createSnippet, .toggleCaffeinate, .caffeinateForDuration:
+            return .brown
+        case .joinNextMeeting, .mySchedule, .createEvent, .copyMeetingLink, .openInCalendar, .quit,
+            .startPomodoro, .pausePomodoro, .skipPomodoroPhase, .stopPomodoro:
+            return .red
+        case .showNotes, .createNote, .searchNotes: return .yellow
+        case .createWindowLayout, .captureWindowLayout, .switchRoom, .createRoom: return .mint
+        case .exportSettings, .importSettings, .importFromRaycast: return .cyan
+        case .support, .pickColor, .colorHistory: return .pink
+        }
     }
 
     #if AI_FEATURES

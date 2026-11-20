@@ -106,7 +106,7 @@ enum SettingsSearchCatalog {
     // Pane order, then section order within a pane, so this reads as a table of contents.
 
     static let entries: [SettingsSearchEntry] =
-        general + applications + systemSettings + systemActions + commands + quicklinks
+        general + iCloudSync + applications + systemSettings + systemActions + commands + quicklinks
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + pomodoro + emoji + ai + quickActions + dictation + extensions
         + permissions + backup + about
@@ -311,6 +311,12 @@ enum SettingsSearchCatalog {
             .aiSystemPrompt, "Send a system prompt",
             keywords: ["instructions", "persona"]),
         .init(
+            group: .aiChatPresets, "Chat Presets",
+            keywords: ["persona", "instructions", "system prompt"]),
+        .init(
+            .aiChatPresets, "Add Chat Preset",
+            keywords: ["new", "persona", "instructions", "system prompt"]),
+        .init(
             .aiMCPServers, "Enable MCP servers",
             keywords: ["tools", "model context protocol"]),
         .init(
@@ -378,6 +384,9 @@ enum SettingsSearchCatalog {
             group: .fileSearchSearchScopes, "Search Scopes",
             keywords: ["folders", "locations", "home", "whole disk", "add folder"]),
         .init(
+            .fileSearchSearchScopes, "Include hidden files",
+            keywords: ["dotfiles", "dot folders", "invisible"]),
+        .init(
             group: .fileSearchIgnorePatterns, "Ignore Patterns",
             keywords: ["exclude", "glob", "node_modules", "skip", "ignore folder"])
     ]
@@ -411,6 +420,9 @@ enum SettingsSearchCatalog {
         .init(
             .snippetsSnippets, "Enable snippets",
             keywords: ["expansion", "keystrokes", "accessibility"]),
+        .init(
+            .snippetsSnippets, "Default action",
+            keywords: ["enter", "return", "paste", "copy", "primary"]),
         .init(
             group: .snippetsCommands, "Snippet commands",
             keywords: ["shortcut", "hotkey", "launcher", "browser"]),
@@ -663,6 +675,18 @@ enum SettingsSearchCatalog {
         .init(
             .permissionsMicrophone, "Microphone",
             keywords: ["dictation", "recording", "privacy", "grant"])
+    ]
+
+    private static let iCloudSync: [SettingsSearchEntry] = [
+        .init(pane: .iCloudSync, keywords: ["icloud", "sync", "cloud", "cloudkit", "other macs"]),
+        .init(.iCloudSyncSwitch, "Sync with iCloud", keywords: ["turn on", "enable", "sync"]),
+        .init(
+            group: .iCloudSyncContent, "Synced Content",
+            keywords: ["notes", "snippets", "quicklinks", "chats", "extensions", "presets"]),
+        .init(group: .iCloudSyncGeneral, "Synced Settings", keywords: ["appearance", "login", "menu bar"]),
+        .init(group: .iCloudSyncNotSynced, "Not Synced", keywords: ["clipboard", "passwords", "excluded"]),
+        .init(group: .iCloudSyncMacs, "Synced Macs", keywords: ["devices", "remove", "rename", "computers"]),
+        .init(.iCloudSyncData, "Delete iCloud Data", keywords: ["reset", "erase", "remove", "cloud data"])
     ]
 
     private static let backup: [SettingsSearchEntry] = [

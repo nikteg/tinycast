@@ -74,7 +74,8 @@ struct RootPaletteView: View {
                 store: snippets, core: core, vm: vm, openActions: openActions)
         case .snippetEditor:
             return SnippetEditorScreen(
-                coordinator: core.snippetCoordinator, openInputMenu: openInputOptions)
+                coordinator: core.snippetCoordinator, openMenuCorner: menuCorner,
+                openInputMenu: openInputOptions)
         case .emoji:
             return EmojiScreen(
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
@@ -222,6 +223,15 @@ struct RootPaletteView: View {
             })
     }
 
+    private var dictionaryScopeContent: PopoverMenuContent {
+        PopoverMenuContent(
+            items: DictionaryScope.allCases.map { scope in
+                PopoverMenuItem(title: scope.title, systemImage: scope.systemImage) {
+                    dictionary.select(scope)
+                }
+            })
+    }
+
     private var appMenuContent: PopoverMenuContent {
         let appName = Bundle.main.appDisplayName
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
@@ -230,6 +240,11 @@ struct RootPaletteView: View {
             header: title,
             items: [
                 PopoverMenuItem(
+                    title: String(localized: "Check for Updates"), systemImage: "arrow.down.circle"
+                ) {
+                    core.updateCoordinator.checkForUpdates()
+                },
+                PopoverMenuItem(
                     title: String(localized: "Changelog"),
                     systemImage: "clock.arrow.trianglehead.2.counterclockwise.rotate.90"
                 ) {
@@ -237,11 +252,15 @@ struct RootPaletteView: View {
                         openURL(url)
                     }
                 },
-                PopoverMenuItem(title: String(localized: "About Tinycast"), systemImage: "info.circle") {
+                PopoverMenuItem(
+                    title: String(localized: "About Tinycast"), systemImage: "info.circle",
+                    startsSection: true
+                ) {
                     core.settingsCoordinator.showAbout()
                 },
                 PopoverMenuItem(
-                    title: String(localized: "Settings"), systemImage: "gearshape", shortcut: "⌘,"
+                    title: String(localized: "Settings"), systemImage: "gearshape",
+                    startsSection: true, shortcut: "⌘,"
                 ) {
                     core.settingsCoordinator.showSettings()
                 },
@@ -268,7 +287,6 @@ struct RootPaletteView: View {
             let filtered = appMenuContent.matching(ActionMenuSearchQuery(vm.menuQuery))
             return PaletteMenuContent(
                 popover: filtered.content, selection: $menuSelection,
-                visibleRows: Theme.Size.appMenuVisibleRows,
                 search: PopoverMenu.Search(
                     placeholder: String(localized: "Search for actions…"), placement: .bottom),
                 onActivate: activateMenuItem, preferredSelection: filtered.bestMatch)
@@ -279,6 +297,8 @@ struct RootPaletteView: View {
             return headerMenu(fileSearchFilterContent, width: metrics.size.fileSearchFilterMenuWidth)
         case .emojiCategory:
             return headerMenu(emojiCategoryContent, width: metrics.size.emojiCategoryMenuWidth)
+        case .dictionaryScope:
+            return headerMenu(dictionaryScopeContent, width: metrics.size.fileSearchFilterMenuWidth)
         #if AI_FEATURES
         case .aiModel:
             return headerMenu(
@@ -362,8 +382,11 @@ struct RootPaletteView: View {
                 )
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                // Hidden rather than unmounted, so expanding never shows a frame without glass.
-                .background(GlassEffectView().opacity(isCollapsed ? 0 : 1))
+                .background(isCollapsed ? .clear : Theme.Colors.panelScrim)
+                // Square, as rounded glass feathers its edge; the clip alone cuts a crisp corner.
+                .background {
+                    Color.clear.glassEffect(isCollapsed ? .identity : .regular, in: Rectangle())
+                }
                 .overlay {
                     Theme.Colors.dialogDimming
                         .opacity(core.isDimmingPaletteForDialog && !isCollapsed ? 1 : 0)
@@ -375,6 +398,7 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
+                // Also the window's shape: without it, macOS shadows the default window outline.
                 .clipShape(
                     RoundedRectangle(
                         cornerRadius: isCollapsed ? 0 : metrics.radius.panel, style: .continuous
@@ -480,6 +504,7 @@ struct RootPaletteView: View {
                     fileSearch.cancel()
                 }
                 if vm.mode == .dictionary {
+                    dictionary.refreshScopes()
                     dictionary.lookUp(vm.query)
                 } else {
                     dictionary.reset()
@@ -744,7 +769,7 @@ struct RootPaletteView: View {
                 if isCollapsed {
                     CompactBar(
                         commands: compactCommands, selection: compactSelection.command,
-                        onRun: runCompactCommand)
+                        onRun: runCompactCommand, onSettled: { hostWindow?.invalidateShadow() })
                 }
             }
             // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
@@ -844,6 +869,14 @@ struct RootPaletteView: View {
                     isOpen: openMenu == .emojiCategory,
                     help: String(localized: "Filter by category  ⌘P"),
                     action: toggleEmojiCategory)
+            }
+            if !isCollapsed, vm.mode == .dictionary, dictionary.hasThesaurus {
+                headerGutter(width: metrics.spacing.md)
+                HeaderMenuButton(
+                    title: dictionary.scope.title, systemImage: dictionary.scope.systemImage,
+                    isOpen: openMenu == .dictionaryScope,
+                    help: String(localized: "Dictionary or thesaurus  ⌘P"),
+                    action: toggleDictionaryScope)
             }
             #if AI_FEATURES
             if !isCollapsed, vm.mode == .ai {
@@ -1124,6 +1157,7 @@ struct RootPaletteView: View {
         case .clipboardFilter: toggleClipboardFilter()
         case .fileSearchFilter: toggleFileSearchFilter()
         case .emojiCategory: toggleEmojiCategory()
+        case .dictionaryScope: toggleDictionaryScope()
         #if AI_FEATURES
         case .aiModel: toggleAIModel()
         #else
@@ -1141,6 +1175,16 @@ struct RootPaletteView: View {
         }
         let active = EmojiCategoryFilter.allCases.firstIndex(of: vm.emojiCategoryFilter) ?? 0
         open(.emojiCategory, highlighting: active)
+    }
+
+    private func toggleDictionaryScope() {
+        if openMenu == .dictionaryScope {
+            closeMenus()
+            return
+        }
+        guard dictionary.hasThesaurus else { return }
+        let active = DictionaryScope.allCases.firstIndex(of: dictionary.scope) ?? 0
+        open(.dictionaryScope, highlighting: active)
     }
 
     private func toggleExtensionSearchAccessory() {
@@ -1252,11 +1296,9 @@ struct RootPaletteView: View {
         if presenting, let hostWindow {
             menuPanel.show(
                 view, corner: corner, parent: hostWindow, core: core,
-                clipPath: content.clipPath,
                 onKeyDown: handleMenuPanelKey, onDismiss: closeMenus)
         } else {
-            menuPanel.update(
-                view, corner: corner, core: core, clipPath: content.clipPath)
+            menuPanel.update(view, corner: corner, core: core)
         }
     }
 
@@ -1374,7 +1416,8 @@ struct RootPaletteView: View {
         case .actions: .bottomTrailing
         case .argumentOptions: .belowHeaderTrailing
         case .inputOptions(let corner): corner
-        case .clipboardFilter, .fileSearchFilter, .emojiCategory, .aiModel, .aiReasoning,
+        case .clipboardFilter, .fileSearchFilter, .emojiCategory, .dictionaryScope, .aiModel,
+            .aiReasoning,
             .aiAttachments, .extensionAccessory:
             .belowHeaderTrailing
         case nil: nil
@@ -1611,6 +1654,7 @@ private enum OpenMenu: Equatable {
     case clipboardFilter
     case fileSearchFilter
     case emojiCategory
+    case dictionaryScope
     case aiModel
     case aiReasoning
     case aiAttachments

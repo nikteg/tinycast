@@ -9,6 +9,7 @@ import { CryptoPanel } from "./crypto-panel";
 import { ThankYou } from "./thank-you";
 
 const THANKS_PARAM = "thanks";
+const METHOD_PARAM = "method";
 
 const methodIcons: Record<Method, LucideIcon> = {
   crypto: Bitcoin,
@@ -17,6 +18,10 @@ const methodIcons: Record<Method, LucideIcon> = {
 
 function parsePlan(value: string | null): Plan | null {
   return value === "monthly" || value === "one-time" ? value : null;
+}
+
+function parseMethod(value: string | null): Method | null {
+  return methods.find((method) => method.id === value)?.id ?? null;
 }
 
 function MethodTabs({
@@ -100,6 +105,14 @@ export function SupportFlow({ intro }: Props) {
     setReturned(plan);
   }, []);
 
+  useEffect(() => {
+    const linked = parseMethod(
+      new URL(window.location.href).searchParams.get(METHOD_PARAM),
+    );
+    // oxlint-disable-next-line react/set-state-in-effect -- URL is only readable after hydration
+    if (linked) setMethod(linked);
+  }, []);
+
   return (
     <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_580px] lg:gap-20">
       {intro}
@@ -112,7 +125,7 @@ export function SupportFlow({ intro }: Props) {
           {returned ? (
             <ThankYou plan={returned} />
           ) : (
-            <div className="rounded-2xl bg-surface shadow-key">
+            <div className="rounded-2xl bg-surface shadow-line">
               <MethodTabs value={method} onChange={setMethod} />
               <div className="grid p-5 sm:p-6">
                 <MethodPanel isActive={method === "card"}>

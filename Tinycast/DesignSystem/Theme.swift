@@ -2,6 +2,12 @@ import SwiftUI
 
 /// Central design tokens; every dark colour is the literal the forced-dark build shipped.
 enum Theme {
+    /// macOS 26 glass casts its own shadow; on 27 bare glass has none and needs the window's.
+    static var glassCastsShadow: Bool {
+        if #available(macOS 27, *) { return false }
+        return true
+    }
+
     enum Spacing {
         static let xxs: CGFloat = 2
         static let dictationWaveGap: CGFloat = 3
@@ -30,7 +36,7 @@ enum Theme {
     enum Radius {
         static let panel: CGFloat = 26
         static let row: CGFloat = 10
-        static let formField: CGFloat = 12
+        static let formField: CGFloat = 10
         /// Emoji tiles are roomier than list rows, so their corners take one larger step.
         static let emojiCell: CGFloat = 12
         static let menu: CGFloat = 6
@@ -121,7 +127,7 @@ enum Theme {
         /// Fixed so the recorder can't resize as its binding changes.
         static let shortcutRecorder: CGFloat = 120
         static let shortcutPopoverLine: CGFloat = 14
-        /// Summed from the laid-out bands; the width is pinned by `callout-test`.
+        /// Summed from the laid-out bands; the width is pinned by `CalloutTests`.
         static let shortcutPopover = CGSize(
             width: 176,
             height: Spacing.sm * 2 + heroKeyCap + Spacing.sm + shortcutPopoverLine * 2 + Spacing.sm
@@ -165,7 +171,6 @@ enum Theme {
         static let menuSectionHeader: CGFloat = 16
         /// Five rows and half of the sixth, so a capped menu reads as scrollable, not clipped.
         static let menuVisibleRows: CGFloat = 5.5
-        static let appMenuVisibleRows: CGFloat = 4.5
         /// Rounded: a half-row of an odd pitch lands the glass edge on a half pixel.
         static var menuRowsMaxHeight: CGFloat {
             (menuVisibleRows * (menuRowHeight + menuRowSpacing)).rounded()
@@ -192,8 +197,8 @@ enum Theme {
         static let previewAspectRatio: CGFloat = 16 / 9
         /// Opening size and resize floor: the Quick Actions row's width, the sidebar's full height.
         static let settingsWindow = CGSize(width: 900, height: 700)
-        /// Settings sidebar: a fixed column, wide enough for "Window Management".
-        static let settingsSidebar: CGFloat = 215
+        /// Settings sidebar: a fixed column, as wide as System Settings' own.
+        static let settingsSidebar: CGFloat = 232
         /// The narrowest the pane column may get before a grouped row's control starts colliding.
         static let settingsDetailMinimum: CGFloat = 420
         static let settingsRowIcon: CGFloat = 20
@@ -350,6 +355,8 @@ enum Theme {
         static let glyphDelay: TimeInterval = 0.24
         static let glyphFade: TimeInterval = 0.16
         static let glyphBlur: CGFloat = 4
+        /// Both springs rest within this, so the window's shadow is recut from the settled shapes.
+        static let settle: TimeInterval = 0.9
         /// Past the window's own close animation, so parking the buttons is never seen.
         static let parkAfterHide: TimeInterval = 0.3
         /// The capsule undershoots as it shortens, then settles.
@@ -416,6 +423,7 @@ enum Theme {
             adaptive(dark: .srgbInk(1, alpha: dark), light: .srgbInk(0, alpha: light))
         }
 
+        static let panelScrim = adaptive(dark: .srgbInk(0, alpha: 0.40), light: .srgbInk(1, alpha: 0.55))
         static let dialogDimming = adaptive(
             dark: .srgbInk(0, alpha: 0.34), light: .srgbInk(0, alpha: 0.34))
         /// Find's marks, the Mac's own yellow: every match faint, the current one solid.
@@ -529,12 +537,6 @@ enum Theme {
             private static func pair(dark: UInt32, light: UInt32) -> Color {
                 adaptive(dark: rgb(dark), light: rgb(light))
             }
-
-            private static func rgb(_ hex: UInt32) -> NSColor {
-                NSColor(
-                    srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
-                    blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-            }
         }
     }
 
@@ -557,6 +559,45 @@ enum Theme {
         static let scoreCardWidth: CGFloat = 620
         /// Rendered at twice the points, so a pasted card stays sharp on a Retina display.
         static let scoreCardScale: CGFloat = 2
+    }
+
+    enum IconTile {
+        static let glyphRatio: CGFloat = 0.6
+        static let edgeLightRatio: CGFloat = 0.02
+        static let edgeLight = LinearGradient(
+            stops: [
+                .init(color: .white.opacity(0.26), location: 0),
+                .init(color: .white.opacity(0.03), location: 0.6)
+            ], startPoint: .top, endPoint: .bottom)
+
+        /// Fixed in both appearances: a saturated tile carries its own contrast against white ink.
+        static func fill(_ tint: IconTint) -> LinearGradient {
+            let (top, bottom): (UInt32, UInt32) =
+                switch tint {
+                case .gray: (0xA9A9AF, 0x77777D)
+                case .graphite: (0x55555B, 0x1F1F22)
+                case .blue: (0x4AA3FF, 0x0B6BF5)
+                case .cyan: (0x5CC8F7, 0x1B9BE0)
+                case .mint: (0x56D6C4, 0x12B2A0)
+                case .green: (0x5FDD70, 0x2DBB49)
+                case .yellow: (0xFFD43B, 0xF5AB00)
+                case .orange: (0xFFAD42, 0xFF8600)
+                case .red: (0xFF6A60, 0xEE3B31)
+                case .pink: (0xFF6B87, 0xF52E57)
+                case .purple: (0xC96BF7, 0xA235DB)
+                case .indigo: (0x8583FF, 0x5451E0)
+                case .brown: (0xC2A07A, 0x96744F)
+                }
+            return LinearGradient(
+                colors: [Color(nsColor: rgb(top)), Color(nsColor: rgb(bottom))],
+                startPoint: .top, endPoint: .bottom)
+        }
+    }
+
+    private static func rgb(_ hex: UInt32) -> NSColor {
+        NSColor(
+            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
     }
 }
 

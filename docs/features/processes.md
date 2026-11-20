@@ -8,7 +8,7 @@ and port, and who holds it. On either screen ↵ quits the process (`SIGTERM`), 
 ## Invariants
 
 - **`Model/` stays Foundation-only.** The `netstat` parser, CPU measurement, row ordering, selection
-  following and `ProcessQuery` are compiled by `process-test`.
+  following and `ProcessQuery` are compiled by `ProcessTests`.
 - **Names and paths come from the kernel**, never `ps`'s `comm`: that is `argv[0]`, which a process
   can rewrite (`ssh: … [mux]`) or leave relative. `ProcessSweep` reads `sysctl(KERN_PROC_UID)`,
   `proc_pidpath` and `proc_pid_rusage`.

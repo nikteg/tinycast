@@ -46,7 +46,9 @@ struct DialogView: View {
 
                 switch request.accessory {
                 case .volume(let volume): VolumeSlider(state: volume)
-                case .snippetArguments(let arguments): SnippetArgumentFields(state: arguments)
+                case .snippetArguments(let arguments):
+                    SnippetArgumentFields(
+                        state: arguments, onSubmit: { onChoose(request.defaultIndex) })
                 case .clipboardText(let state): ClipboardEditField(state: state)
                 case nil: EmptyView()
                 }
@@ -59,7 +61,8 @@ struct DialogView: View {
         }
         .padding(metrics.spacing.dialogInset)
         .frame(width: width, alignment: .leading)
-        .glassEffect(.regular, in: shape)
+        .background(Theme.Colors.panelScrim, in: shape)
+        .background { Color.clear.glassEffect(.regular, in: shape) }
     }
 
     @ViewBuilder private var actions: some View {

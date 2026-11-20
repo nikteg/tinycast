@@ -6,23 +6,33 @@ enum CalcDateFacts {
         case week
         case dayOfYear
         case age
+        case weekday
+        case weekOfMonth
+        case dayOfMonth
 
         /// Longest first, so `what week number is it` is not read as `what week`.
         static let phrases: [(String, Fact)] = [
             ("what day of the year is it", .dayOfYear), ("what day of year is it", .dayOfYear),
             ("what week number is it", .week), ("what week of the year is it", .week),
             ("what week is it", .week), ("current week number", .week), ("week of the year", .week),
-            ("day of the year", .dayOfYear), ("week number", .week), ("day of year", .dayOfYear),
-            ("day number", .dayOfYear), ("born on", .age), ("born", .age), ("age of", .age), ("age", .age)
+            ("week of year", .week),
+            ("week of the month", .weekOfMonth), ("week of month", .weekOfMonth),
+            ("day of the month", .dayOfMonth), ("day of month", .dayOfMonth),
+            ("day of the year", .dayOfYear), ("day of the week", .weekday), ("week number", .week),
+            ("day of year", .dayOfYear), ("day number", .dayOfYear), ("weekday", .weekday),
+            ("born on", .age), ("born", .age), ("age of", .age), ("age", .age)
         ]
     }
 
     static func evaluate(_ raw: String, now: Date, calendar: Calendar) -> CalcResult? {
         // Every phrase is two words or more and starts with one of these letters.
-        guard raw.utf8.count <= 64, let first = raw.utf8.first, "wdabcWDABC".utf8.contains(first),
+        guard raw.utf8.count <= 64, let first = raw.utf8.first, "wdabchmsyWDABCHMSY".utf8.contains(first),
             raw.utf8.contains(32)
         else { return nil }
-        let query = raw.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let query = raw.lowercased().split(whereSeparator: \.isBlank).joined(separator: " ")
+        if let count = periodCount(query, now: now, calendar: calendar) { return count }
+        if let share = elapsedShare(query, now: now, calendar: calendar) { return share }
+        if query.hasPrefix("week "), let week = weekSpan(query, now: now, calendar: calendar) { return week }
         guard let (phrase, fact) = Fact.phrases.first(where: { matches(query, $0.0) }) else { return nil }
         var rest = String(query.dropFirst(phrase.count)).trimmingCharacters(in: .whitespaces)
         if fact != .age {
@@ -39,8 +49,7 @@ enum CalcDateFacts {
             return nil
         }
 
-        let day = CalcDateFormatters.string(
-            from: date, calendar: calendar, zone: calendar.timeZone, pattern: "EEEE, d MMMM, yyyy")
+        let day = format(date, "EEEE, d MMMM, yyyy", calendar: calendar)
         switch fact {
         case .week:
             return card(
@@ -49,9 +58,26 @@ enum CalcDateFacts {
         case .dayOfYear:
             guard let ordinal = calendar.ordinality(of: .day, in: .year, for: date) else { return nil }
             return card(query, day, String(localized: "Day of the Year"), ordinal)
+        case .weekOfMonth:
+            return card(
+                query, day, String(localized: "Week of the Month"),
+                calendar.component(.weekOfMonth, from: date))
+        case .dayOfMonth:
+            return card(
+                query, day, String(localized: "Day of the Month"), calendar.component(.day, from: date))
         case .age:
             return age(query, born: date, rest: rest, day: day, now: now, calendar: calendar)
+        case .weekday:
+            let name = format(date, "EEEE", calendar: calendar)
+            return CalcResult(
+                expression: query, sourceBadge: format(date, "d MMMM, yyyy", calendar: calendar),
+                targetBadge: String(localized: "Day of the Week"),
+                payload: .value(display: name, copyText: name), canChain: false)
         }
+    }
+
+    private static func format(_ date: Date, _ pattern: String, calendar: Calendar) -> String {
+        CalcDateFormatters.string(from: date, calendar: calendar, zone: calendar.timeZone, pattern: pattern)
     }
 
     /// The phrase must end the query or be followed by a word, so `ages` and `agent` are not `age`.
@@ -63,6 +89,25 @@ enum CalcDateFacts {
         CalcResult(
             expression: query, sourceBadge: day, targetBadge: badge, payload: .number(Double(value)),
             canChain: false)
+    }
+
+    private static func weekSpan(_ query: String, now: Date, calendar: Calendar) -> CalcResult? {
+        let words = query.split(separator: " ")
+        guard words.count <= 3, let week = Int(words[1]), (1...53).contains(week),
+            let year = words.count == 3 ? Int(words[2]) : calendar.component(.yearForWeekOfYear, from: now),
+            (1...9999).contains(year),
+            let start = calendar.date(
+                from: DateComponents(
+                    weekday: calendar.firstWeekday, weekOfYear: week, yearForWeekOfYear: year)),
+            calendar.component(.weekOfYear, from: start) == week,
+            let end = calendar.date(byAdding: .day, value: 6, to: start)
+        else { return nil }
+        let text =
+            format(start, "EEE, d MMM", calendar: calendar) + " – "
+            + format(end, "EEE, d MMM, yyyy", calendar: calendar)
+        return CalcResult(
+            expression: query, sourceBadge: String(year), targetBadge: String(localized: "Week of the Year"),
+            payload: .value(display: text, copyText: text), canChain: false)
     }
 
     /// A year has to be written, because a bare `3 may` could be any birth year.
@@ -84,5 +129,185 @@ enum CalcDateFacts {
             if run == 4 { return true }
         }
         return false
+    }
+
+    // MARK: - Counts over a period
+
+    private static func periodCount(_ query: String, now: Date, calendar: Calendar) -> CalcResult? {
+        var words = query.split(separator: " ").map(String.init)
+        guard words.count >= 3, let unit = PeriodUnit(words[0]) else { return nil }
+        words.removeFirst()
+        let remaining = words.first == "left" || words.first == "remaining"
+        if remaining { words.removeFirst() }
+        guard words.count >= 2, words.removeFirst() == "in",
+            let period = period(
+                words.joined(separator: " "), now: now, calendar: calendar, ahead: unit == .workdays)
+        else { return nil }
+        var start: Date? = period.interval.start
+        if remaining, period.interval.start < now {
+            guard now < period.interval.end else { return nil }
+            start =
+                unit.countsDays
+                ? calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) : now
+        }
+        guard let start, let value = unit.count(from: start, to: period.interval.end, calendar: calendar)
+        else {
+            return nil
+        }
+        return CalcResult(
+            expression: query, sourceBadge: period.label,
+            targetBadge: remaining ? String(localized: "Remaining") : String(localized: "Total"),
+            payload: .number(value, suffix: " " + (value == 1 ? unit.singular : unit.plural)), canChain: false
+        )
+    }
+
+    private enum PeriodUnit {
+        case seconds, minutes, hours, days, weeks, workdays
+
+        init?(_ word: String) {
+            switch word {
+            case "seconds", "second": self = .seconds
+            case "minutes", "minute", "mins": self = .minutes
+            case "hours", "hour", "hrs": self = .hours
+            case "days", "day": self = .days
+            case "weeks", "week": self = .weeks
+            case "workdays", "workday", "weekdays", "businessdays": self = .workdays
+            default: return nil
+            }
+        }
+
+        /// Calendar units count whole days, so what remains of today is never part of them.
+        var countsDays: Bool { self == .days || self == .weeks || self == .workdays }
+
+        var singular: String {
+            switch self {
+            case .seconds: "second"
+            case .minutes: "minute"
+            case .hours: "hour"
+            case .days: "day"
+            case .weeks: "week"
+            case .workdays: "workday"
+            }
+        }
+
+        var plural: String { singular + "s" }
+
+        func count(from start: Date, to end: Date, calendar: Calendar) -> Double? {
+            guard start <= end else { return 0 }
+            switch self {
+            case .seconds: return end.timeIntervalSince(start)
+            case .minutes: return end.timeIntervalSince(start) / 60
+            case .hours: return end.timeIntervalSince(start) / 3600
+            case .days, .weeks:
+                guard let days = calendar.dateComponents([.day], from: start, to: end).day else { return nil }
+                return self == .weeks ? Double(days) / 7 : Double(days)
+            case .workdays:
+                return CalcDateTime.businessDays(from: start, to: end, calendar: calendar).map(Double.init)
+            }
+        }
+    }
+
+    /// `ahead` reads `3 weeks` as the days from today, which only a workday count needs.
+    private static func period(
+        _ phrase: String, now: Date, calendar: Calendar, ahead: Bool
+    ) -> (interval: DateInterval, label: String)? {
+        let component: Calendar.Component
+        let date: Date
+        switch phrase {
+        case "the year", "this year", "year":
+            (component, date) = (.year, now)
+        case "the month", "this month", "month":
+            (component, date) = (.month, now)
+        case "today", "the day":
+            (component, date) = (.day, now)
+        default:
+            if let named = quarterOrRelative(phrase, now: now, calendar: calendar) { return named }
+            if phrase.count == 4, let year = Int(phrase),
+                let first = calendar.date(from: DateComponents(year: year, month: 1, day: 1))
+            {
+                (component, date) = (.year, first)
+            } else if ahead, let end = CalcDateTime.adding(phrase, to: calendar.startOfDay(for: now), calendar: calendar)
+            {
+                let start = calendar.startOfDay(for: now)
+                return (DateInterval(start: start, end: end), format(start, "EEEE, d MMMM", calendar: calendar))
+            } else if let first = CalcDateTime.day("1 " + phrase, now: now, calendar: calendar) {
+                // The month's first day names it, so a bare `february` takes the nearest year.
+                (component, date) = (.month, first)
+            } else {
+                return nil
+            }
+        }
+        guard let interval = calendar.dateInterval(of: component, for: date) else { return nil }
+        let pattern = component == .year ? "yyyy" : component == .month ? "MMMM yyyy" : "EEEE, d MMMM"
+        return (interval, format(interval.start, pattern, calendar: calendar))
+    }
+
+    /// `q3`, `q1 2027`, `next month`, `last quarter`, `this week`.
+    private static func quarterOrRelative(
+        _ phrase: String, now: Date, calendar: Calendar
+    ) -> (interval: DateInterval, label: String)? {
+        let words = phrase.split(separator: " ")
+        if let name = words.first, name.count == 2, name.first == "q", let quarter = Int(name.dropFirst()),
+            (1...4).contains(quarter), words.count <= 2
+        {
+            guard let year = words.count == 2 ? Int(words[1]) : calendar.component(.year, from: now),
+                let start = calendar.date(from: DateComponents(year: year, month: quarter * 3 - 2, day: 1)),
+                let end = calendar.date(byAdding: .month, value: 3, to: start)
+            else { return nil }
+            return (DateInterval(start: start, end: end), "Q\(quarter) \(year)")
+        }
+        guard words.count == 2, let step = ["last": -1, "this": 0, "next": 1][String(words[0])] else {
+            return nil
+        }
+        let months: Int
+        switch words[1] {
+        case "week":
+            guard let anchor = calendar.date(byAdding: .weekOfYear, value: step, to: now),
+                let week = calendar.dateInterval(of: .weekOfYear, for: anchor)
+            else { return nil }
+            return (week, format(week.start, "EEEE, d MMMM", calendar: calendar))
+        case "month": months = 1
+        case "quarter": months = 3
+        case "year": months = 12
+        default: return nil
+        }
+        let month = calendar.component(.month, from: now)
+        let opening = months == 1 ? month : (month - 1) / months * months + 1
+        guard
+            let base = calendar.date(
+                from: DateComponents(year: calendar.component(.year, from: now), month: opening, day: 1)),
+            let start = calendar.date(byAdding: .month, value: step * months, to: base),
+            let end = calendar.date(byAdding: .month, value: months, to: start)
+        else { return nil }
+        let year = calendar.component(.year, from: start)
+        let label =
+            switch months {
+            case 1: format(start, "MMMM yyyy", calendar: calendar)
+            case 3: "Q\((calendar.component(.month, from: start) - 1) / 3 + 1) \(year)"
+            default: String(year)
+            }
+        return (DateInterval(start: start, end: end), label)
+    }
+
+    // MARK: - Elapsed share
+
+    /// `year percentage`: how much of the current year, month, week or day has gone.
+    private static func elapsedShare(_ query: String, now: Date, calendar: Calendar) -> CalcResult? {
+        let words = query.split(separator: " ")
+        guard words.count == 2, words[1] == "percentage" || words[1] == "progress" else { return nil }
+        let component: Calendar.Component
+        let label: String
+        switch words[0] {
+        case "year": (component, label) = (.year, String(calendar.component(.year, from: now)))
+        case "month": (component, label) = (.month, format(now, "MMMM yyyy", calendar: calendar))
+        case "week": (component, label) = (.weekOfYear, String(localized: "This Week"))
+        case "day": (component, label) = (.day, format(now, "EEEE, d MMMM", calendar: calendar))
+        default: return nil
+        }
+        guard let span = calendar.dateInterval(of: component, for: now), span.duration > 0 else { return nil }
+        let text = String(format: "%.1f%%", now.timeIntervalSince(span.start) / span.duration * 100)
+        return CalcResult(
+            expression: query, sourceBadge: label, targetBadge: String(localized: "Elapsed"),
+            payload: .value(display: text, copyText: text), canChain: false)
     }
 }

@@ -7,7 +7,7 @@ sit on the same screen, in the menu bar, and ring with a chime, a pill and a not
 ## Invariants
 
 - **`Model/` stays Foundation-only.** `DurationPhrase`, `DurationText` and `CountdownTimer` are
-  compiled by `timers-test`, and take `now` as a parameter everywhere.
+  compiled by `TimersTests`, and take `now` as a parameter everywhere.
 - **A timer that has rung is gone.** `CountdownTimer` is running or paused; there is no finished state,
   and `timers.json` exists only while a timer does.
 - **The banner is scheduled ahead**, at the timer's end, so it lands on time mid-sleep or while
